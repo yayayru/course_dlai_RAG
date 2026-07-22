@@ -1,0 +1,110 @@
+0:00
+LLMs are remarkable tools. They can answer questions, summarize and rewrite text, provide feedback on documents, generate code, and much more.
+0:09
+These types of tasks seemed out of reach for computers just a few years ago, and interacting with one can feel a lot like working with another person.
+0:17
+RAG is an approach that further improves the performance of large language models by giving them access to information that they don't know from their training.
+0:27
+To help highlight that idea, let's look at a few examples.
+0:30
+Suppose I asked you the question, why are hotels expensive on the weekend?
+0:35
+You can probably answer that question. More people travel on weekends, so there's more competition for rooms.
+0:42
+Now, suppose I asked you, why are hotels in Vancouver super expensive this coming weekend?
+0:48
+You'll need more information to answer this one.
+0:51
+If you searched online, you might find that international superstar Taylor Swift is in town this weekend for a two-night residency.
+0:58
+With that additional information, you again probably could answer the question.
+1:03
+Finally, suppose I asked you, why doesn't Vancouver have more hotel capacity close to downtown?
+1:10
+To answer this question, you'd probably need to do some deep research into the history of Vancouver's development, urban planning in general, and so forth.
+1:19
+In other words, you'd need access to a lot of specialized information.
+1:23
+You can think of the way you'd respond to these questions as two phases.
+1:28
+First, you collect any necessary information, and then you reason over that information to develop your response.
+1:36
+As you saw with the first question, sometimes you don't need to collect any information.
+1:41
+Based on your knowledge of the world, you're ready to respond right away.
+1:45
+Other times, though, you might need to collect a little bit or even a lot of information.
+1:50
+In RAG, the process of collecting useful information is called retrieval.
+1:56
+And the process of reasoning over that information and responding is called generation.
+2:03
+LLMs benefit from the retrieval stage for basically the same reasons you do.
+2:08
+You'll learn more about LLMs throughout this course.
+2:12
+But for now, you can think of them as kind of like a person that has a wide variety of general knowledge from reading huge chunks of the Internet.
+2:21
+When you prompt an LLM, it relies on this knowledge to generate a response.
+2:25
+For many prompts, this works great.
+2:27
+In other cases, though, the LLM doesn't know the information it needs to respond accurately.
+2:33
+The prompt might be about a very recent event or some specialized information it hasn't previously seen.
+2:41
+Just as was true with you, it's unreasonable to expect LLMs to be experts on every topic.
+2:47
+And they provide much better responses when they have access to better information.
+2:51
+Recognizing that LLMs also benefit from a retrieval phase is the core idea of RAG.
+2:58
+Of course, LLMs aren't people who spend a lot of time on Wikipedia.
+3:02
+Instead, they're mathematical models that have been trained on massive data sets taken from all over the open Internet.
+3:09
+During the training process, the model learns any information contained in the training data.
+3:14
+When you send a prompt to an LLM, you're hoping information relevant to your question was included in the training data, ideally many times.
+3:23
+Unfortunately, lots of information won't be included.
+3:26
+Companies keep private databases.
+3:29
+Some information is just hidden or hard to access.
+3:32
+And with news being published every minute of the day, there will always be information out there that an LLM wasn't trained on.
+3:40
+The question then is, how do you make sure the LLM knows this useful information?
+3:46
+The short answer, just put it in the prompt.
+3:49
+The key idea of a RAG system is that you can modify a prompt before sending it to the large language model.
+3:57
+In addition to the user's original question, you can add in information that helps the LLM respond.
+4:03
+If you asked a RAG system, why are hotels in Vancouver super expensive this weekend?
+4:08
+It would first perform a retrieval step to gather relevant information.
+4:13
+The language model would then be provided an augmented prompt that includes both the original question and any retrieved information.
+4:22
+Now, the LLM has the information it needs to respond accurately.
+4:27
+Of course, this information needs to be retrieved from somewhere.
+4:30
+The component of a RAG system that handles this process is called a retriever.
+4:35
+The retriever manages a knowledge base of trusted, relevant, and possibly private information.
+4:42
+When the RAG system receives a prompt, the retriever finds and retrieves the most relevant information from the knowledge base to share with the LLM.
+4:52
+The model then uses that retrieved information when it responds to the prompt.
+4:57
+The name Retrieval Augmented Generation, which is admittedly a mouthful, hopefully now makes more sense.
+5:06
+All you're doing is improving or augmenting the way an LLM generates text by first retrieving relevant information from a knowledge base.
+5:16
+This is a high-level description of how RAG works, but sometimes it can be more useful to see some example applications.
+5:23
+So join me in the next video where I'll talk through some ways RAG is already used.

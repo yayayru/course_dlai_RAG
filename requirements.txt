@@ -1,0 +1,3 @@
+requests
+together
+python-dotenv
