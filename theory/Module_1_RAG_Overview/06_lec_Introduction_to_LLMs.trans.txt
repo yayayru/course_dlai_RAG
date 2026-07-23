@@ -1,0 +1,184 @@
+0:00
+Now that you've seen the high-level architecture of a RAG system,
+0:03
+let's take a closer look at each component, starting with the large language model itself.
+0:08
+Understanding the way they operate, their strengths, and their limitations will help explain
+0:13
+the way other components in a RAG system are designed to improve an LLM's performance.
+0:19
+LLMs are sometimes jokingly called fancy autocomplete, but that's actually a fair
+0:24
+description. All LLMs do is predict the next word that should appear in a piece of text.
+0:31
+For example, if I show you the incomplete phrase, what a beautiful day the sun is dot dot dot,
+0:37
+you and I could probably guess what word should complete that sentence.
+0:41
+And so could an LLM. I'd say the word shining makes the most sense, but the sun is rising,
+0:47
+or the sun is out could also work. The original phrase is called the prompt,
+0:52
+and each of these final completed phrases is called a completion.
+0:56
+One possible completion for this prompt is the sun is exploding, but you'd probably say that's
+1:02
+incorrect. The problem isn't that the phrase is grammatically flawed, it's valid English,
+1:08
+but just that this phrase is improbable. The sun usually doesn't explode, certainly not on a
+1:14
+beautiful day like this one. You have an intuitive sense for how words are used, and in a way,
+1:21
+so do language models. Under the hood, they use a neural network, an enormous and complex
+1:26
+mathematical model of language. This model stores information about which words are commonly used
+1:32
+with each other, in which order they typically appear, and on a higher level, captures what
+1:39
+these words mean in context. This mathematical representation of language is what the model
+1:46
+ultimately uses to generate new text. When an LLM generates a completion, all it's doing is
+1:52
+adding new words to the end of the prompt, one word at a time. For example, if it were generating
+1:59
+a completion to that last prompt, it would likely add the word shining, and then might add the words
+2:05
+in the sky, one at a time, before signaling the completion is done, and returning it to the user.
+2:12
+Technically, an LLM doesn't generate words, but rather tokens, which is a more generic term for
+2:18
+pieces of words. Some words like London and door might have their own token, but common compound
+2:26
+words like programmatically and unhappy are usually split into multiple tokens. Punctuation,
+2:34
+like the period, comma, and the question mark, could also get their own tokens. Most LLMs have
+2:40
+a total vocabulary of anywhere from 10 to more than 100,000 tokens. Having the flexibility to
+2:47
+build up compound words out of smaller word pieces allows the model to build any possible word
+2:54
+without needing to actually assign a token to each one. Here's the process the LLM goes through
+3:01
+before adding each new token to the completion. First, it processes the current state of the
+3:07
+completion, generating a deep understanding of the relationships between each word and the overall
+3:13
+meaning of the text. Then, the LLM goes through every token in its vocabulary, usually tens to
+3:19
+hundreds of thousands of them, and calculates the probability that it should appear next.
+3:25
+In the example you've seen so far, shining would likely have the highest probability,
+3:29
+and rising would have a smaller probability, but even improbable words like exploding or snoring
+3:36
+would still have a tiny chance of appearing next. In other words, the LLM generates a probability
+3:43
+distribution across every token. It then randomly chooses the next token from that probability
+3:51
+distribution. In this example, 80 times out of 100, it'll choose shining, but it's still possible it
+3:59
+could choose rising, or yes, even exploding. When the LLM goes to add another token to the completion,
+4:07
+it repeats this entire process. This time, most of the words in the completion are from the original
+4:13
+prompt, but one of them is the word shining, which it just generated. This means that token choices
+4:20
+the LLM makes earlier in the completion will impact selections it makes later. This is desirable
+4:26
+behavior because it means new tokens will make sense in the context of the tokens the LLM has
+4:32
+already chosen. That said, it also means that once an LLM randomly chooses one direction to take a
+4:39
+completion, it will follow that path where it leads. For example, after choosing shining, the LLM might
+4:47
+choose in, the, and sky, since those words all make sense in the context of the words chosen before them.
+4:56
+If that initial generated token had been warming, however, the LLM might then choose our
+5:03
+faces, as that makes more sense given the direction the LLM took the completion. This behavior is
+5:11
+called autoregressive, meaning self-influencing. Thanks to the randomness and autoregressive nature,
+5:20
+running the same prompt multiple times through the same LLM will usually lead to different
+5:26
+completions. An LLM is able to understand the meaning of a prompt and make reasonable predictions
+5:33
+of words because it has been trained on large collections of text. The mathematical model that
+5:39
+powers an LLM has billions of individual parameters or numerical weights. Before training, this model
+5:46
+would just produce gibberish. During training, the LLM is shown incomplete pieces of text from the
+5:52
+training data and tries to predict which word comes next. Based on the accuracy of these predictions,
+5:58
+it will update its internal parameters. In this way, the model learns to produce both the factual
+6:04
+information and the linguistic styles in the training data. Many large language models today
+6:10
+are trained on trillions of tokens of text, largely taken from the open internet. The
+6:16
+resulting models are able to generate text in a wide variety of styles and on wide variety of
+6:22
+topics because examples of those styles and information of those topics was in its training
+6:27
+data. Understanding how LLMs work and how they're trained also explains many of their behaviors.
+6:34
+Let's start with hallucinations. All LLMs can do is generate probable sequences of words
+6:41
+based on the patterns they learned in their training data. If you ask an LLM about your
+6:46
+company's private internal data or today's news, the model almost certainly wasn't trained on that
+6:53
+information and so isn't in a good position to respond. In these instances, an LLM will sometimes
+6:59
+give responses that sound right but aren't actually true. Even though these behaviors are
+7:06
+called hallucinations, it's important to remember the LLM isn't having a psychological episode or
+7:11
+even really malfunctioning. LLMs are designed to generate probable text, not truthful text.
+7:19
+Truth, as far as an LLM is concerned, is just that a sequence of words is probabilistically
+7:26
+likely based on its training data. With high quality training data, our intuitive understanding
+7:31
+of truth and an LLM's mathematical understanding of probable word sequences can be kept in alignment.
+7:38
+The challenge then is to ensure the LLM has access to as much relevant information as possible.
+7:44
+RAG solves this problem by taking advantage of how well LLMs are able to understand context.
+7:52
+If your RAG system adds relevant information to the prompt, the LLM is able to understand and
+7:57
+incorporate that information into its responses even though that information wasn't part of its
+8:03
+training data. Typically, you'd say this information grounds the LLM's responses. While you might just
+8:10
+want to add as much relevant information to the prompt as you can find, in practice, there's
+8:15
+reasons you can't. First, longer prompts just take more computation to run. This is because before
+8:22
+generating each new token, the model performs a computationally complex scan of every token
+8:29
+already in the completion including the original prompt. Second, eventually you'll hit the limit
+8:35
+of an LLM's context window, the longest sequence it can process at once. Some older models have
+8:42
+context windows of only a few thousand tokens, while newer ones can process millions. This means
+8:48
+that as the retriever adds more information to the augmented prompt, at first you'll just make
+8:54
+your prompts more costly and eventually you'll entirely use up the model's context window.
+9:00
+There are a wide array of LLM providers, but in this course you'll be using TogetherAI,
+9:05
+which hosts many popular open source models. Using open source models makes it easier to look
+9:11
+under the hood of large language models and explore many of the concepts you'll learn throughout this
+9:16
+course. There's a lot more to learn about LLMs, but the main takeaway at this point is that an LLM's
+9:23
+design allows it to incorporate information in the prompt into its response, even if that
+9:30
+information wasn't included in the training data. So let's turn our attention to the retriever
+9:35
+and see how it works to provide that information.

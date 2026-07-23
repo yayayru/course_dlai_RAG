@@ -1,0 +1,154 @@
+0:03
+You've already seen the most important components in a RAG system, namely the LLM itself, a knowledge base of relevant information, and a retriever that can search the knowledge base.
+0:10
+Now let's look at the overall architecture of a RAG system and how these components work together.
+0:16
+Let's start by looking at how you normally use a large language model.
+0:20
+You type a prompt and send it to the LLM.
+0:23
+The LLM processes the prompt and generates a response.
+0:27
+The user experience for a RAG system is actually identical.
+0:31
+You submit a prompt and get back a response.
+0:34
+Inside the system, however, there's a few more steps.
+0:38
+When the RAG system receives your prompt, it first routes it to the retriever.
+0:43
+The retriever has access to the knowledge base, which, practically speaking, is just a database of useful documents.
+0:50
+The retriever queries the database, returning documents that it determines are most relevant to the prompt.
+0:57
+Next, the system creates an augmented prompt, incorporating information from the relevant documents into the original prompt.
+1:06
+For example, an augmented prompt might be,
+1:09
+Answer the following question.
+1:11
+Why are hotels in Vancouver so expensive this coming weekend?
+1:15
+Here are five relevant articles that may help you respond.
+1:18
+And then insert text from the articles.
+1:21
+At this point, the system operates like any other LLM.
+1:25
+The augmented prompt is sent to the LLM and it generates a response.
+1:29
+The LLM is able to respond based on both the knowledge it learned from its training data,
+1:35
+as well as any additional context provided by the retrieved documents.
+1:40
+The user experience is the same as always, perhaps with a little bit of added latency.
+1:46
+You type a prompt and you get back a response.
+1:49
+Thanks to that side route through the retriever, however,
+1:53
+there's a higher likelihood the response is accurate, up to date, and context aware.
+1:58
+As you just saw, the main difference between using an LLM directly and a RAG system
+2:04
+is the addition of the retriever.
+2:06
+This fairly straightforward addition, however, allows for a number of advantages.
+2:11
+First and most importantly, it makes information available to the LLM that might otherwise not be.
+2:18
+Whether it's company policies, a piece of personal information, or this morning's headlines,
+2:24
+RAG is often the only way to make some kinds of information available to an LLM.
+2:29
+Related to this first point, RAG reduces the likelihood of hallucinations or misleading responses.
+2:36
+These are often caused by LLMs generating responses about topics
+2:40
+which were excluded from their training data, or perhaps just mentioned rarely.
+2:44
+Adding relevant information directly in the prompt grounds the language model's responses
+2:50
+and makes them less likely to create generic or misleading text.
+2:54
+RAG makes it much easier to keep LLMs up to date with rapidly changing information.
+2:59
+Retraining a language model is usually a costly and time-consuming feat,
+3:04
+so LLMs struggle to keep up with very new information.
+3:08
+In a RAG system, however, you can simply update the information in the knowledge base,
+3:13
+just like you'd update entries in any other database.
+3:17
+As soon as those changes are indexed, your LLM will be able to respond based on the new information.
+3:23
+RAG improves an LLM's ability to cite sources.
+3:26
+A RAG system can add citation information to the augmented prompt,
+3:30
+and the LLM can then include that information in its ultimate response.
+3:35
+This doesn't just ground the response,
+3:37
+but enables human readers to dig deeper and validate the generated text.
+3:41
+Finally, RAG allows an LLM to focus on this text generation.
+3:46
+The retriever filters down a vast world of information,
+3:50
+finds what's most important and relevant, and presents it succinctly.
+3:55
+The LLM still needs to write a good response,
+3:58
+but it's not being relied upon to do fact-finding or filtering steps.
+4:02
+In other words, each component is assigned to work on the area of its greatest strength.
+4:08
+By the end of this course, you'll dive deep on building RAG systems from the ground up,
+4:13
+but here's a very simple code demo of how RAG works,
+4:17
+with most of the details abstracted away.
+4:20
+I have a retrieve function and a generate function.
+4:24
+The retrieve function is a wrapper around a retriever.
+4:28
+It accepts a text query and returns relevant documents from the knowledge base.
+4:34
+The generate function is just a wrapper around a large language model.
+4:39
+It accepts a text prompt and returns the LLM's response.
+4:44
+I'll write a prompt and save it in the variable prompt.
+4:47
+The prompt is, why are hotel prices in Vancouver super expensive this weekend?
+4:53
+Now, let's submit our prompt directly to our LLM and see what answer it returns.
+5:00
+Okay, now let's see what additional information our retriever has about this prompt, like this.
+5:08
+And now let's build an augmented prompt that contains both the original user question
+5:13
+and the retrieved information.
+5:15
+So here, the augmented prompt reads, respond to the following prompt.
+5:19
+We add in our prompt, using the following information retrieved to help you answer.
+5:24
+And then we add in our retrieved documents.
+5:27
+Now, let's submit this augmented prompt to our LLM.
+5:31
+Now the LLM is able to provide an accurate response to the question,
+5:34
+integrating the information that was retrieved from the knowledge base.
+5:38
+That's really all there is to RAG.
+5:40
+Adding additional context to your prompt to help an LLM respond more accurately.
+5:46
+This was admittedly a very high level overview of a RAG architecture.
+5:50
+So join me in the next video and we'll start looking at each component in more detail.
