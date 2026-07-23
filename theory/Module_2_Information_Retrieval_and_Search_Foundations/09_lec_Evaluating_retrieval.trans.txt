@@ -1,0 +1,148 @@
+0:00
+Just like any piece of software, once your retriever is up and running, you'll want to know if it's actually working.
+0:06
+While you can evaluate a retriever in terms of latency, throughput, resource usage, and so forth, what ultimately matters is search quality.
+0:16
+In other words, is it finding relevant documents?
+0:20
+Let's look at a few ways you can answer that question.
+0:23
+There's a few ingredients common to most retriever quality metrics.
+0:28
+First, you'll need the prompt itself, as retrievers may perform well on one prompt and poorly on another.
+0:35
+Second, you need the ranked list of documents the retriever returns from that prompt.
+0:40
+And finally, you need a ground truth list of all the relevant documents in your knowledge base that the retriever should return.
+0:49
+In other words, if you want to grade your retriever, you need to know the correct answers.
+0:55
+Two of the most common retriever quality metrics are precision and recall.
+1:00
+Precision is calculated by dividing the number of relevant retrieved documents by the total number of documents retrieved.
+1:08
+Recall, on the other hand, is calculated by dividing the number of relevant documents retrieved by the total number of relevant documents in the knowledge base.
+1:18
+Here's an example to help you understand the difference.
+1:21
+Suppose you know that your knowledge base has 10 documents relevant to a prompt because you hand marked them.
+1:28
+You run your retriever on the prompt, and it returns 12 documents, 8 of which are relevant.
+1:34
+The precision is 66%, since 8 of the 12 are relevant.
+1:40
+And the recall is 80%, since 8 of the 10 relevant documents were retrieved.
+1:47
+Now, you adjust your retriever settings and run the prompt through it again.
+1:52
+On this second run, it returns 15 documents, 9 of which are relevant.
+1:58
+Your retriever returned 3 more documents than last time, but only 1 more relevant document.
+2:04
+Precision dropped to 60%, or 9 out of 15.
+2:08
+Recall, however, increases to 90%, as you found 9 of the 10 relevant documents this time.
+2:16
+In other words, you've traded a little bit of precision away to get a bit more recall.
+2:22
+Precision penalizes a retriever for returning irrelevant documents, and can be thought of as capturing how trustworthy the results are.
+2:31
+Recall penalizes a retriever for leaving out any relevant documents, and measures how comprehensive the retriever is.
+2:41
+The only way to have perfect recall and precision is to rank the relevant documents most highly, and only return those documents.
+2:51
+Otherwise, you're often trading off between the two.
+2:54
+Retrieval metrics are influenced by how many documents the retriever returns.
+2:59
+So to standardize, they're usually talked about in terms of the top K documents, meaning the K documents that the retriever ranked most highly.
+3:10
+For example, consider this ranked list of documents returned by a retriever.
+3:15
+The precision at 5 in this example is 40%, since only 2 of the top 5 documents are relevant.
+3:23
+The precision at 10, meanwhile, rises to 60%, as 6 of the top 10 documents are relevant.
+3:30
+Suppose there are 8 relevant documents in the knowledge base.
+3:34
+The recall at 10 here would be 6 out of 8, or 75%.
+3:39
+Depending on which value of top K you choose, you can quickly produce new precision and recall values.
+3:48
+Top 5, top 2, or top 1 metrics can be used when stricter standards are important.
+3:55
+Often, though, a slightly more generous range between top 5 and top 15 is used.
+4:01
+To give a more holistic view of retriever performance, Mean Average Precision, or MAP at K, evaluates the average precision for relevant documents in the first K documents retrieved.
+4:13
+First, let's calculate a related metric called Average Precision at 6 for this example.
+4:19
+You list out the 6 documents the retriever ranked most highly and calculate Precision at K for every row.
+4:26
+Next, you add up the precisions only for rows that contain relevant documents.
+4:31
+Here, those rows are 1, 4, and 5, so you add 1, 0.5, and 0.6.
+4:39
+Finally, you divide by the number of relevant documents retrieved in the top K, which in this case is 3.
+4:46
+That gives us an average precision of 0.7.
+4:49
+To calculate Mean Average Precision, you just calculate average precision across many prompts and sets of documents retrieved, and average those values.
+4:59
+This just tells you what the average precision would be for a typical prompt your retriever receives.
+5:05
+MAP rewards ranking relevant documents highly.
+5:08
+If an irrelevant document sneaks into a spot high up in the rankings, it will decrease the precision at the rank of every relevant document below it, bringing down the overall average.
+5:19
+A high MAP value is therefore a good indication that a retriever is placing the relevant documents it finds high up in the ranking.
+5:25
+A final common metric is Reciprocal Rank, which measures the rank of the first relevant object in a returned list.
+5:34
+For example, if the first relevant object appears at rank 2, the reciprocal rank would be 1 over 2, or 0.5.
+5:43
+If it were at rank 4, the reciprocal rank would be 0.25.
+5:48
+The further down the list the first relevant document appears, the worse the reciprocal rank.
+5:54
+This is typically performed over multiple prompts to get the Mean Reciprocal Rank, or MRR.
+6:02
+MRR reflects how soon, on average, you can find a relevant item in the retriever's ranking,
+6:08
+and emphasizes the importance of including at least one relevant document as high in the ranking as possible.
+6:15
+For example, if you complete four searches using a retriever, and the first relevant document in each ranking appeared in the first, third, sixth, and second spot in the ranking,
+6:28
+you'd calculate the Mean Reciprocal Rank by dividing 1 by each of those numbers.
+6:34
+You then average those values. Here, that gives you 1, 1 third, 1 sixth, and 1 half.
+6:44
+Adding those values and dividing by 4 gives you the Mean Reciprocal Rank of 0.5.
+6:50
+With many metrics available, it's important to know how best to use them together.
+6:55
+Recall, or Recall at K, is the most foundational and most cited metric for retrievers,
+7:02
+because it captures the most fundamental goal of the retriever, finding relevant documents.
+7:07
+Precision and MAP build upon this by assessing whether the retriever is including many irrelevant documents,
+7:15
+or how effectively the retriever is ranking them.
+7:18
+Mean Reciprocal Rank is a bit more specialized, but helps identify how well your model performs at the very top end of its ranking.
+7:27
+These metrics can both help evaluate the performance of your retriever, and help you decide if adjustments you make to a system are working.
+7:36
+For example, you could adjust how heavily you weight semantic or keyword search in your hybrid retrieval system,
+7:43
+and then see what effect that has on your retriever's recall or precision for a collection of sample prompts.
+7:50
+If there's a downside to these metrics, it's just that they all depend on having ground truth, relevant documents for a collection of sample prompts.
+8:00
+This can be a time-consuming and manual process to compile.
+8:05
+The end result, however, is a system you can monitor during both development and once it's in production.
+8:11
+Okay, you've covered all the most important concepts underlying a retriever in a typical RAG system.
+8:17
+Join me in the next video, and let's summarize the main takeaways from this module.
