@@ -1,0 +1,130 @@
+0:00
+Let's start our exploration of search techniques with keyword search.
+0:03
+This technique has powered retrieval in databases and search engines for decades,
+0:08
+and yet its simplicity and effectiveness make it a key component of retrieval in modern RAG systems.
+0:15
+Let's have a look at how it works and what strengths it brings to your retriever pipeline.
+0:20
+Keyword search is a technique that retrieves documents based on whether they share words
+0:24
+in common with the prompt. The idea is basically that documents that contain a lot of words from
+0:31
+the prompt are more likely to be relevant. Here's how it works. Both the prompt and each document
+0:39
+are treated as a bag of words. This means the order of the words is totally ignored,
+0:45
+and all that matters is which words are in the text and how often. For example, the text
+0:52
+making pizza without a pizza oven contains the word pizza twice and the words making without
+1:00
+a and oven once. These word counts are stored inside of a vector. The vector has one spot
+1:08
+for each word in the system's vocabulary, so there could easily be tens of thousands of spots.
+1:14
+Each number in the vector counts how often that word appears in the text.
+1:19
+Since most of the locations hold zeros, these are also called sparse vectors.
+1:25
+To prepare the knowledge base for retrieval, a sparse vector is generated for each document.
+1:31
+All of these vectors can be arranged in a grid, which is referred to as a term document matrix.
+1:37
+Each column is a different document and each row is a different word. This is also sometimes called
+1:44
+an inverted index, since it makes it easy to start from a word and find every document that
+1:51
+contains it. It's inverted because usually you start from a document and think of which words
+1:59
+it contains, but here you're starting from a word and finding which documents include that word.
+2:07
+This inverted index can be created once prior to processing any search. When a prompt is sent to
+2:13
+the retriever, a sparse vector is quickly generated for the prompt. Now that each document and the
+2:19
+prompt have a sparse vector, you're ready to start scoring and ranking documents. The simplest
+2:25
+approach is to just award documents points when they contain words in the prompt. Each word in
+2:32
+the prompt is called a keyword. In the example prompt from before, you'd start with the first
+2:37
+keyword, making, and find its row in the index. Then you go across that row and award one point
+2:45
+to every document that contains at least one copy of the keyword. You then complete the same process
+2:52
+for every other keyword in the prompt. If a document contains the keyword, it scores a point.
+2:59
+This prompt contains five keywords, meaning the highest possible score is five. Once you're done,
+3:05
+the total scores can be used to rank documents, and the documents with the highest scores are
+3:10
+retrieved. One shortcoming of the simple scoring approach is that it doesn't capture whether a
+3:16
+document contains keywords multiple times, which likely indicates greater relevance. A simple fix
+3:23
+is to increase a document's score every time it contains a keyword, not just the first. Now you
+3:31
+can find the row of each keyword in the matrix and just award each document the number of points
+3:37
+in its column. This introduces a new problem, however, which is that longer documents may
+3:43
+contain the keywords many times simply because they're longer. To correct for this, you can divide
+3:49
+each document's score by the number of words in that document. This normalized score levels the
+3:57
+playing field. It rewards documents in which keywords make up a greater share of the total text
+4:03
+and de-emphasizes long documents that might contain keywords many times simply because they're so long.
+4:11
+This approach is pretty good, but it awards points for all keywords equally, whether they're
+4:17
+filler words like the or less common words like pizza, whose presence is a much better indication
+4:24
+of relevance. To correct for this, you can again weight terms, but this time using a measure called
+4:31
+inverse document frequency or IDF. To use this approach, you need to calculate an IDF value for
+4:38
+each word in the system's vocabulary. For each word, you'll count how many documents it appears in
+4:44
+and then divide by the total number of documents. If your knowledge base has 100 documents
+4:50
+and the word pizza appears in five of them, it would have a document frequency of 5 over 100 or
+4:56
+0.05. A common word like the might appear in all 100 documents, so this document frequency would be
+5:05
+100 over 100 or just 1. Since you want to reward rare words, you now flip the fraction upside down
+5:13
+or invert it. Pizza's IDF would now be 20, while the has an IDF of just 1. At this point, rare words
+5:24
+have a significantly higher IDF than common ones, which can overly reward rare words. For this
+5:30
+reason, the log of the IDF is what's normally used. Rare words still have a greater weight, but it's
+5:37
+less exaggerated than before. The result is an IDF value for each word that captures how rare it is
+5:43
+across the knowledge base. To use these values in scoring, first the values in the inverted index are
+5:50
+updated, multiplying the numbers in each row by that word's IDF score. The resultant matrix is a
+5:57
+term frequency inverse document frequency matrix, or TF-IDF matrix. To score the documents in the
+6:05
+knowledge base, you just use the same approach as before. For each key word in the prompt, go across
+6:12
+its row and award each document the TF-IDF score it has in that row. The TF-IDF scores produced by
+6:20
+this approach are a standard baseline for the performance of keyword retrieval. The highest
+6:26
+scoring documents will frequently use keywords, and in particular will feature many keywords that
+6:32
+are rare across the entire knowledge base. Looking at the earlier prompt, documents containing rare
+6:38
+words like pizza or oven will likely score much better than documents that contain common words
+6:44
+like a or without. While TF-IDF is a foundational approach to keyword search, modern systems tend to
+6:53
+use a slightly refined version of this approach called BM-25. Join me in the next video to learn
+6:59
+how that works, and then reflect on the strengths of keyword search and how it fits inside your RAC
+7:05
+system.

@@ -1,0 +1,40 @@
+0:00
+A retriever's job is pretty easy to state.
+0:02
+All it needs to do is find documents in the knowledge base that can help an LLM respond to a prompt.
+0:09
+If you think about it, though, that's a pretty difficult job.
+0:13
+Users aren't submitting well-structured SQL queries to your RAC system.
+0:17
+They're chatting with your LLM the way they talk to another person.
+0:20
+Meanwhile, the documents in your knowledge base might be anything from personal emails
+0:25
+to internal company memos or articles from a medical journal.
+0:29
+They might be rich in information, but it's usually structured for humans to read,
+0:34
+not for a computer to search through it.
+0:37
+Somehow, a retriever has to handle all of this messily structured information
+0:41
+and rapidly return the most relevant pieces, all in fractions of a second.
+0:47
+In this module, you'll learn about the primary techniques a retriever uses to accomplish this feat.
+0:53
+You'll build a theoretical understanding of how each technique works,
+0:57
+explore their relative strengths and weaknesses,
+1:00
+and see how a retriever uses them in combination to provide the best possible results.
+1:05
+You'll also be introduced to some strategies for evaluating a retriever's performance.
+1:10
+And as always, you'll find some hands-on coding exercises
+1:13
+and a programming assignment where you can directly apply what you've learned.
+1:17
+I think you'll enjoy this deep dive on information retrieval.
+1:21
+So join me in the next video, and let's get started.

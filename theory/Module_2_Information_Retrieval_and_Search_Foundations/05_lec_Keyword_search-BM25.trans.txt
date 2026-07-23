@@ -1,0 +1,92 @@
+0:03
+While TF-IDF remains a classic keyword search algorithm, the algorithm used in most retrievers
+0:05
+is called Best Matching 25, or more simply BM25. It's called this because it was the 25th variant
+0:13
+in a series of scoring functions proposed by its creators. It makes a few improvements
+0:19
+upon TF-IDF, so let's explore how those work. Here's the formula for BM25. It actually works
+0:26
+very similarly to TF-IDF, with a few key additions you'll see momentarily.
+0:32
+This formula generates a relevant score for a single keyword for a particular document.
+0:38
+Summing these scores up across all keywords generates a total relevant score for a single
+0:44
+document, which can then be used for ranking. Let's now see how BM25 improves on TF-IDF.
+0:52
+First, documents score diminishing returns as they include more instances of a keyword.
+0:59
+The idea here is that a document that includes the keyword pizza 20 times isn't actually twice
+1:06
+as relevant as one that includes pizza 10 times. This behavior of discounting additional instances
+1:13
+of a keyword is referred to as term frequency saturation. Second, longer documents are still
+1:21
+penalized as they are in TF-IDF, but in BM25 these penalties are also diminishing. While
+1:28
+penalizing long documents is important, TF-IDF can do so too aggressively in a way that overly
+1:35
+discounts longer documents. BM25 applies diminishing additional penalties as documents
+1:42
+grow in length. The result is that long documents still score highly as long as they have a fairly
+1:49
+high frequency of the keywords. This process of adjusting scores based on document length
+1:55
+is called document length normalization. BM25 also differs from TF-IDF in that it includes two
+2:03
+tunable hyperparameters. These allow you to control the degree of term frequency saturation
+2:10
+and document length normalization, or in other words, how rapidly documents stop being rewarded
+2:16
+for repeated keywords and penalized for increased length. In a production retriever, you would tune
+2:22
+these hyperparameters in order to land on an overall scoring system that best fits the data
+2:27
+in your knowledge base. In a production retriever, the standard keyword search algorithm is BM25.
+2:34
+It tends to perform significantly better than TF-IDF at finding relevant documents,
+2:39
+is roughly equivalent in terms of the computational resources it requires,
+2:43
+and the ability to tune its hyperparameters to your dataset makes it much more flexible. Let's
+2:49
+briefly review keyword search and talk about how its strengths are used inside of a typical
+2:54
+retriever pipeline. The core idea of keyword search is that you match documents to prompt
+3:00
+based on how frequently keywords from the prompt appear in each document. As a part of this process,
+3:07
+both prompts and documents are converted to sparse vectors that count how often each word
+3:13
+in the system's vocabulary appears in that piece of text. TF-IDF or BM25 are just different
+3:20
+approaches for processing these sparse vectors in order to score and then rank documents. These
+3:26
+methods also account for important factors like the rarity of a keyword, how often a document
+3:31
+contains a keyword, and document length. BM25 is the most commonly used keyword search algorithm
+3:39
+that has withstood the test of time for decades since its invention. It strikes a good balance
+3:44
+between complexity and performance in real-world applications. The primary strength of keyword
+3:50
+search is its simplicity. It's a relatively straightforward approach that works well in
+3:55
+practice, often capable of performing quite well on its own and frequently setting a competitive
+4:01
+benchmark that more advanced techniques may struggle to surpass. It also ensures that
+4:07
+retrieved documents will contain the keywords from your user's prompt. Especially in situations when
+4:12
+you expect users to use technical terminology or exact product names, this kind of exact
+4:18
+keyword matching is particularly important. Despite all its strengths, keyword search does
+4:24
+have weaknesses. It ultimately depends on the query containing keywords that exactly match the
+4:31
+words in the document. If a user sends a prompt that has a similar meaning to a document but just
+4:37
+doesn't include the right words, keyword search won't be able to find that match. So let's have
+4:43
+a look at semantic search and how it addresses this problem.

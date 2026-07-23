@@ -1,0 +1,92 @@
+0:00
+Metadata filtering is the most straightforward and likely the most familiar technique used inside of a retriever.
+0:05
+Let's have a look at how it's used, and what particular benefits it brings to how the retriever works.
+0:12
+Metadata filtering uses rigid criteria to narrow down the documents returned by a retriever,
+0:17
+based on the document's metadata.
+0:19
+This metadata might be information, like a document's title, author, creation date, access privileges, and so forth.
+0:27
+Here's a simple example of how it works.
+0:30
+Suppose you work at a newspaper, and want to build a retriever for articles written over the history of your paper.
+0:37
+The knowledge base would contain thousands of different articles.
+0:40
+Each article is tagged with multiple pieces of metadata, including its title, the date the article was published, the author of the article,
+0:49
+which section of the newspaper the article appeared in, and so forth.
+0:53
+While the full text of each article lives somewhere in the knowledge base, the system can only search for articles based on this metadata.
+1:00
+Querying this kind of index looks a lot like writing a SQL query.
+1:05
+If you only filtered based on one piece of metadata, you could find every article published on a given day,
+1:12
+or even every article written by a particular author.
+1:16
+You could also write more complex queries and filter on multiple pieces of metadata.
+1:21
+For example, you could find all of the articles written for the opinion section between June and July of 2024 by your favorite journalist.
+1:32
+Only articles that meet every condition would be returned, and the rest of the articles would be filtered out.
+1:38
+If you've ever filtered a table in a spreadsheet, you've already done metadata filtering.
+1:43
+You're just using a strict set of criteria to determine which members of a larger collection of data you want to use.
+1:49
+Inside of a typical RAC system, you won't use metadata filtering to perform retrieval,
+1:54
+but rather to help narrow down results returned by other retrieval techniques.
+2:00
+The filters themselves also usually aren't determined by what the user said in the prompt,
+2:05
+but rather other attributes of the user making the request.
+2:09
+For example, consider the newspaper example from before.
+2:12
+Say some of your articles are published freely to the open internet, and others can only be accessed by paid subscribers.
+2:20
+Each article could have a piece of metadata storing whether it is a free or paid article.
+2:26
+When a user searches a database, the system can detect whether they're signed in as a paid subscriber.
+2:32
+If not, then a metadata filter would be set to exclude paid articles from search results.
+2:38
+Similarly, if your newspaper prints articles in many regions of the world,
+2:43
+each article could have a piece of metadata storing the region where the article was published.
+2:48
+When a reader queries the system, you can detect in which region they're located and only return articles from their region.
+2:56
+Metadata filtering has a number of advantages.
+2:59
+Firstly, it's conceptually simple, making it easy to understand how the system works and debug issues.
+3:06
+Second, it's a fast, mature, and well-optimized approach.
+3:11
+Finally, and perhaps most importantly,
+3:14
+it's the only approach that allows your system to decide whether documents are retrieved based on rigid criteria.
+3:21
+If you want to strictly define what kinds of documents should or should not be included in the retrieval,
+3:27
+metadata filtering is the only approach that can give you that behavior.
+3:32
+That said, metadata filtering has significant limitations.
+3:36
+It's not really a search technique, so much as it is a tool for refining the results of the other two techniques you'll see in this module.
+3:44
+It's overly rigid, ignores a document's content, and lacks any way of ranking documents once they've passed the filter.
+3:52
+While it's very likely that RAC systems you build will include metadata filters of some kind,
+3:57
+building a retriever that relied exclusively on metadata filtering would be essentially useless.
+4:03
+Metadata filtering is simple and effective, but needs to be paired with other search techniques in order to provide real value.
+4:11
+In particular, you'll need a way to determine if a document's contents are actually relevant to your prompt.
+4:17
+So join me in the next video to see how keyword search addresses some of these needs.

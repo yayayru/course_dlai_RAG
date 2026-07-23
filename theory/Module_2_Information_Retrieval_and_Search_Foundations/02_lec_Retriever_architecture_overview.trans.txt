@@ -1,0 +1,70 @@
+0:00
+Throughout this module, you'll deep dive on several different search techniques,
+0:04
+but it can be useful to have a mental model of the overall system. With that in mind,
+0:09
+let's start this module with a high-level look at a retriever's architecture and how each component
+0:15
+within it works together. When a rack system receives your prompt, it's first sent to the
+0:20
+retriever. The retriever will have access to the knowledge base, which you can think of as just a
+0:25
+bunch of text files sitting in a database. The retriever needs to quickly decide which documents
+0:31
+are most relevant to the prompt and return them so they can be passed to the LLM. Most modern
+0:37
+retrievers use two different search techniques as a part of this process. The first is a more
+0:43
+traditional keyword search. This means the retriever looks for documents that contain
+0:49
+the exact words found in the prompt. This approach is time-tested and has powered information
+0:56
+retrieval systems for decades. The second approach is a semantic search. This means the retriever
+1:03
+looks for documents that have a similar meaning to the prompt. This approach makes the retriever
+1:09
+more flexible as it allows it to find documents that are relevant to the prompt but might not
+1:15
+contain the exact words the user included in their prompt. Each search technique will be used
+1:20
+to return a collection of documents, perhaps 20 to 50 documents each. Usually, there will be many
+1:27
+documents that appear in both lists, but because the style of search is different, they might be
+1:33
+ranked higher in one than the other. At this point, each list is filtered down based on their metadata.
+1:40
+For example, some documents in your knowledge base may be relevant to members of your engineering
+1:45
+team and others are more relevant to people working in HR. The system would know what team
+1:51
+the user is a member of and apply a metadata filter at this point to ensure only the documents
+1:56
+relevant to that department are allowed to move forward. Now, the retriever has two filtered lists.
+2:03
+One generated with a keyword search and the other with a semantic search. These two lists are now
+2:11
+combined to create a final ranking of the most relevant documents. The retriever returns the top
+2:17
+ranked documents from this final list and at this point, the retrieval is complete. The documents
+2:24
+are sent along to be added to the augmented prompt. This style of search is called hybrid search
+2:31
+because it relies on multiple techniques to produce its final document ranking.
+2:36
+Each technique provides benefits that contribute to the overall performance of the retriever.
+2:42
+Keyword search ensures the system is sensitive to the exact words the user included in the prompt.
+2:48
+Semantic search gives the system more flexibility to find documents whose meaning is similar to the
+2:55
+prompt, even if they don't use the same words. Metadata filtering allows the system to exclude
+3:01
+documents based on rigid criteria in a way that neither of the other approaches allows.
+3:08
+Designing a high performing retriever means understanding the relative strengths of each
+3:13
+of these techniques and then tuning the balance between them to align with the needs of your
+3:19
+project. With that in mind, let's start diving in on each of these three techniques,
+3:24
+beginning with the simplest of the three, metadata filtering.

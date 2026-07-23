@@ -1,0 +1,274 @@
+0:00
+Now let's turn our attention to semantic search.
+0:02
+Semantic search is able to match documents to prompts based on shared meaning,
+0:09
+and can capture nuances that keyword search misses.
+0:12
+For example, a keyword search is unable to match the words happy and glad,
+0:18
+even though they're synonyms,
+0:20
+and would incorrectly match Python, the programming language, and Python, the snake.
+0:26
+The technology underlying semantic search is quite remarkable.
+0:30
+So let's dive in to see how it works.
+0:32
+On a very high level, semantic search works just like keyword search.
+0:37
+Every document is mapped to a vector, and so is a prompt.
+0:41
+Then the prompt vectors and document vectors are compared to generate scores,
+0:46
+and find the documents that most closely match the prompt.
+0:50
+The primary difference is the way vectors are assigned to each document and prompt.
+0:56
+In keyword search, you just count how often each word appears in the piece of text.
+1:02
+In semantic search, however, you generate vectors by running the document or prompt
+1:07
+through a special mathematical model called an embedding model.
+1:11
+Embedding models map words to a location in space.
+1:16
+This location is represented by a vector.
+1:18
+For example, the embedding model might map the word pizza to the vector 3, 1,
+1:25
+and the word bear to the vector 5, 2.
+1:28
+In two dimensions, you could represent these as points on the x-y axis.
+1:33
+Now here comes the part that almost feels like magic.
+1:37
+The embedding model will map semantically similar words to nearby locations in space.
+1:43
+For example, the word food and cuisine would get embedded closer to one another,
+1:50
+and the words trombone and cat would be embedded further apart.
+1:56
+Similar meanings lead to similar positions.
+1:59
+The x and y axes here don't have any simple interpretation.
+2:04
+There's no food axis and animal axis here, or at least not one that's easy to see.
+2:10
+Instead, you should just think about points floating around on the 2D plane
+2:15
+with similar meaning words clustered together.
+2:19
+Words have many complex relationships,
+2:21
+and creating sensible clusters in two dimensions probably won't work.
+2:26
+If the vectors each had three components,
+2:28
+you can imagine embedding them into three-dimensional space.
+2:31
+Now there's more room where clusters of related concepts can form
+2:35
+and to capture nuanced relationships between them.
+2:39
+In most embedding models, however,
+2:41
+these vectors have hundreds or even thousands of components,
+2:44
+giving an incredible amount of flexibility on where to embed each point.
+2:49
+It's impossible to graph or maybe even imagine this high-dimensional space,
+2:54
+but mathematically, all the same principles hold.
+2:57
+The vectors give the coordinates of locations in that space.
+3:02
+Similar concepts are embedded close together,
+3:05
+and dissimilar concepts are embedded farther apart.
+3:08
+Even though this example is focused on individual words,
+3:12
+embedding models exist for many kinds of input data.
+3:16
+There are embedding models for individual words,
+3:19
+sentences, and even entire documents.
+3:23
+These models take different kinds of inputs,
+3:26
+but in each case,
+3:28
+output a single vector that specifies a point in space.
+3:33
+Just as with single words,
+3:35
+if the vectors are closer together,
+3:37
+the pieces of text have similar meaning.
+3:40
+Consider three sentences.
+3:43
+He spoke softly in class.
+3:46
+He whispered quietly during class.
+3:49
+Her daughter brightened the gloomy day.
+3:52
+When projected into vector space,
+3:54
+the vectors for the first two sentences will be closer together,
+3:58
+while the third sentence would be far away from the other two.
+4:02
+In order to quantify the similarity of different pieces of text,
+4:05
+you can measure the distance between their vectors.
+4:08
+There's a few ways to do this.
+4:11
+For example, the Euclidean distance
+4:13
+you might remember from geometry class
+4:15
+just measures how far apart two vectors are
+4:18
+by drawing a straight line
+4:20
+from one vector to the other,
+4:22
+the shortest possible distance between them.
+4:24
+The formula to calculate this is essentially the Pythagorean theorem,
+4:28
+but scaled up across more dimensions.
+4:31
+In very high dimensional space, however,
+4:34
+every point tends to be pretty far away from every other point.
+4:38
+A much more commonly used measure of distance
+4:41
+is cosine similarity,
+4:43
+which measures the similarity in the direction of two vectors,
+4:46
+regardless of whether they're that close to one another in space.
+4:50
+The vector 10, 10 and 100, 100
+4:54
+aren't that close to one another,
+4:56
+but they face in the same direction.
+4:59
+Cosine similarities range from 1,
+5:02
+when the vectors face exactly the same direction,
+5:05
+to negative 1,
+5:07
+when they face exactly the opposite from one another.
+5:10
+You will also occasionally see the dot product,
+5:13
+which measures the length of the projection of one vector
+5:17
+onto another.
+5:18
+If two vectors are similar in length
+5:21
+and direction,
+5:22
+the projection will be larger.
+5:25
+If they're at a 90 degree angle,
+5:27
+the projection length will be zero.
+5:29
+If they're facing opposite directions,
+5:32
+the dot product will be negative.
+5:34
+If math's not your forte,
+5:36
+don't worry.
+5:37
+You'll likely never need to implement these distance measures,
+5:40
+but knowing how they work is helpful.
+5:43
+For example,
+5:44
+for both the dot product and cosine similarity,
+5:47
+higher values reflect closer vectors,
+5:49
+which ultimately reflects more similar concepts.
+5:53
+Cosine similarity ranges from negative 1 to 1,
+5:56
+and the dot product
+5:58
+can take any value between negative and positive infinity.
+6:02
+Let's see how this distance measure is used to power semantic search.
+6:06
+First,
+6:07
+all the documents are projected into vector space by the embedding model.
+6:11
+Thanks to how the embedding model is designed,
+6:14
+documents with similar meaning will be closer together,
+6:17
+and documents with dissimilar meaning will be farther apart.
+6:21
+Next,
+6:22
+you embed the prompt
+6:24
+to get a vector of its own.
+6:25
+Now, you can measure the distance between the prompt vector
+6:29
+and the vector of each document.
+6:31
+Thanks to the way the embedding model is designed,
+6:34
+whichever documents are closest
+6:36
+will also have the most similar meaning.
+6:38
+At this point,
+6:39
+ranking documents is easy.
+6:41
+You just sort documents by their distance from the prompt
+6:44
+and return the documents which have the shortest distance.
+6:47
+Thanks to the way the embedding model works,
+6:50
+you've just found the documents with the most similar meaning to your prompt.
+6:54
+Semantic search
+6:55
+is fairly straightforward
+6:57
+if you take for granted that the embedding model works properly.
+7:01
+Similar concepts end up mapped to nearby locations,
+7:05
+and so you can quantify relevance by the distance between vectors.
+7:10
+Digging a little deeper into how embedding models are trained
+7:14
+and how they almost magically know
+7:16
+how to place similar concepts closer together
+7:19
+can help deepen your understanding of semantic search in general.
+7:23
+So join me in the next video
+7:25
+to dive a little deeper on this key component to semantic search.

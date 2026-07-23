@@ -1,0 +1,112 @@
+0:00
+That's the end of our tour of the different search and filtering techniques used inside of a retriever.
+0:05
+So let's have a look at how they can be used together as part of a hybrid search technique to take advantage of their different strengths.
+0:13
+To start, let's review how each technique operates and its key benefits.
+0:18
+Metadata filtering uses rigid criteria stored in document metadata to narrow down search results.
+0:25
+It's fast, easy to implement, and easy to interpret.
+0:29
+It may not be a great search technique on its own, but it provides a strict yes-no filter that neither of the other approaches can provide.
+0:39
+Keyword search scores and ranks documents based on having the same keywords found in the prompt.
+0:46
+Keyword search is still quite fast and easy to implement, and it can even do an excellent job at finding relevant documents.
+0:55
+It performs particularly well in instances where prompts and documents contain technical keywords or product names, as results will contain those exact words.
+1:05
+Keyword search relies on exact matches, however, and so is unable to retrieve documents with similar meanings but different words.
+1:14
+Semantic search scores and ranks documents based on having similar meaning to the prompt.
+1:20
+Documents and prompts are embedded as vectors whose location in space captures their meaning.
+1:27
+Finding the most similar documents to a prompt just means you need to find the document whose vector embedding is closest to the prompt's vector.
+1:36
+Semantic search is slower and more computationally intensive than keyword search, but it provides a flexibility that no other search technique can.
+1:46
+With all three approaches having relative strengths, here's how they're typically combined into a hybrid search pipeline.
+1:54
+First, as always, a prompt is received by the retriever.
+1:58
+The retriever then performs both a keyword search and a semantic search using that prompt.
+2:05
+The result are two ranked lists of documents, one that was scored and ranked using keyword search, and another using semantic search.
+2:16
+If you like, imagine each search technique returning 50 documents, with many documents appearing in both rankings, but perhaps in different order.
+2:27
+Next, both of these lists are filtered using a metadata filter to remove documents that are irrelevant.
+2:34
+For example, the filter might remove documents that aren't relevant to their work.
+2:39
+In this example, the keyword search list is left with 35 documents, and the semantic search only 30.
+2:47
+Now, these two ranked lists need to be combined to form a single ranking.
+2:54
+A commonly used algorithm for combining these rankings is called reciprocal rank fusion.
+3:00
+This algorithm rewards documents for being ranked highly on either list, while allowing you to control whether to give more weight to the keyword or semantic ranking.
+3:11
+Here's the formula for reciprocal rank fusion.
+3:14
+Documents score points based on their ranking in each list.
+3:19
+K is a hyperparameter, but for now pretend it's zero.
+3:23
+In that case, each document scores points equal to the reciprocal of their ranking.
+3:29
+So first place scores one point, second place scores a half a point, and so on.
+3:36
+Documents acquire points from each ranked list, and their total scores are used to calculate a final ranking.
+3:44
+In the case of your retriever, that's just two rankings, their keyword rank and semantic rank.
+3:50
+If a document appeared second in one list and 10th in another, it would score 1 over 2, or half a point from the first ranking, and 1 over 10, or 0.1 points from the second, for a total score of 0.6.
+4:06
+These scores are then used to re-rank all the documents.
+4:10
+Let's go back to that K parameter.
+4:12
+K is used to control the impact of the highest ranked document.
+4:18
+When K is zero, the top ranked document in any list will instantly shoot to the top of the overall ranking, even if it's only highly ranked once.
+4:29
+For example, the top ranked document scores one point, and the 10th ranked document scores one tenth.
+4:37
+That's a 10x difference.
+4:39
+Increasing K to something like 50 balances things out.
+4:43
+Now, the top ranked document scores 1 over 50 points, and the 10th ranked document scores 1 over 60, which is a much more modest difference in scores.
+4:55
+It still pays to be ranked first, but not to such a degree that it dominates rankings on any other list.
+5:03
+Notice that RRF only cares about the rank of the document in each list, not the scores that led to those rankings.
+5:12
+Even if the top ranked document scored considerably better than the second, that information is not considered.
+5:19
+Inside a retriever, hybrid search typically has a second hyperparameter called beta, which allows you to weight the rankings produced by either the semantic or keyword search.
+5:32
+For example, you can set beta to 0.8, assigning 80% of the importance or weight to the ranking provided by semantic search, and only 20% to the ranking provided by keyword search.
+5:46
+A 70-30 split, 70% semantic, 30% keyword search, is typically a good starting point, and you can tune this for your particular system to see what works best.
+5:57
+For applications where exact word matching is really important, but you want some semantic similarity, you'll want to weight keyword search results more heavily than semantic search results.
+6:08
+In other cases where semantic similarity is more important and keywords are less crucial, you'll want to weight vector search results more heavily than keyword search results.
+6:20
+At this point, your retriever is actually ready to return its results.
+6:24
+Depending on how many documents were originally requested, usually referred to as top K, the most similar K documents from this final hybrid ranking are returned by the retriever.
+6:37
+Hybrid search allows a retriever to take advantage of the different benefits that keyword search, semantic search, and metadata filtering provide.
+6:47
+Keyword search provides exact word matching, semantic search allows for fuzzier matching based on meaning, and metadata filtering filters documents out using strict criteria.
+6:59
+There's also ample opportunity to change how this hybrid system works, whether it's adjusting the parameters of the BM25 algorithm, choosing which metadata to filter on, or changing the weighting of keyword versus semantic search in the reciprocal rank fusion step.
+7:17
+This hybrid approach lets you play to each approach's strengths and tune the system's performance to the data in your knowledge base or the needs of your overall project.
+7:27
+To do that tuning, however, you need a way to measure how well a retriever is performing, so join me in the next video to look at how retrievers are evaluated.
