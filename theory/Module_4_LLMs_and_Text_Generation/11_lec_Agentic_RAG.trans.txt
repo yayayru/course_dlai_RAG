@@ -1,0 +1,114 @@
+0:00
+As your RAG system matures, a powerful way to improve its performance is to start introducing
+0:05
+agentic workflows. An agentic workflow means using several LLMs throughout your RAG system,
+0:14
+each one responsible for a single step in the overall process. You've already seen this idea,
+0:21
+with LLMs used to perform tasks like query expansion, prompt rewriting, or citation
+0:27
+generation. There's a huge array of compound systems like this you could build. So let's
+0:32
+look into how you can further improve the quality of your RAG system by building it in an agentic
+0:38
+way. Typically, the way you use a language model is to feed it a prompt, and it spits out a response.
+0:45
+Simple. In an agentic system, there's two main changes to this model. First, tasks are now
+0:53
+treated as a series of steps and decisions, each of which can be completed by a call to a different
+0:59
+LLM. Second, LLMs are given access to a wider array of tools like a code interpreter, web browser,
+1:08
+or in the case of RAG, a vector database of information to reference. Here's one possible
+1:15
+agentic workflow for a RAG system. A user submits a prompt to the system, and it is first processed
+1:22
+by a small router LLM. This LLM's job is to determine if the prompt actually requires a call
+1:29
+to the vector database. It's been specially tuned for this task, and will only output either yes,
+1:35
+meaning the prompt does justify retrieval from the database, or no, meaning the prompt can be
+1:40
+answered without retrieval. Based on the router LLM's decision, the prompt is either sent to the
+1:46
+vector database for retrieval, or skips that step. If no retrieval is completed, the prompt is sent
+1:53
+directly to a separate LLM to generate a response. If a retrieval step was requested, a separate
+2:00
+evaluator LLM is used to determine if the retrieved documents are sufficient to answer the question.
+2:07
+Based on this evaluator LLM's decision, additional retrievals from the vector database may be
+2:12
+requested. Once sufficient information has been retrieved, an augmented prompt is constructed and
+2:18
+given to the LLM to generate a response. At this point, a final LLM goes through this response and
+2:24
+adds citations. This is just one possible agentic RAG system, but it highlights a few key points
+2:32
+that are true for any agentic system. First, you can think of designing an agentic system
+2:38
+essentially as drawing a flow chart. Each LLM in the diagram is still just taking text input
+2:45
+and generating text output, but the system is set up so that each LLM is completing one task
+2:52
+on the prompt's journey through the RAG system. Second, you don't need to use the same LLM for
+2:59
+each step in the workflow. The router and evaluator LLM in this agentic system could be
+3:05
+lightweight models that are fast and cheap to run since they have a single and relatively simple
+3:11
+task. You could then use a larger model to generate the draft response and pick a model that specializes
+3:18
+in citation generation for that step. As you think about adding agentic workflows to your RAG
+3:24
+application, here's a few common patterns to consider. A sequential workflow just moves output
+3:31
+in a linear fashion through a series of LLMs. This might mean that every prompt sent to your
+3:36
+system moves through an LLM-based query parser, query rewriter, and citation generator as part
+3:43
+of the generation process. Each LLM just focuses on one step of the overall process and can therefore
+3:51
+specialize at that step. A conditional workflow uses an LLM to decide which of many paths a prompt
+3:59
+should follow. You just saw a router LLM implement this workflow to decide if a retrieval is necessary
+4:06
+to respond to a prompt. You could also use a router to determine which of several LLMs with different
+4:13
+strengths and specializations should be used to generate a response. An iterative workflow works
+4:19
+similarly to a conditional workflow, but it routes the prompt to an earlier point in the overall
+4:25
+system, forming a loop. For example, if your RAG system is designed to generate code that integrates
+4:31
+with an existing code base, it's possible the system would need multiple attempts to write
+4:36
+working code. An evaluator LLM could be used to assess each draft, perhaps with the assistance
+4:43
+of a code interpreter, and provide feedback until it deems the solution suitable. Finally, you can
+4:50
+create parallel workflows in which an orchestrator language model breaks a prompt into multiple
+4:56
+distinct tasks and assigns each task to separate LLMs. On the other end, a synthesizer language
+5:04
+model recombines their work. If your application is, say, comparing the key insights from two research
+5:11
+papers, you might want two different LLMs to summarize and evaluate each one and then have the
+5:18
+orchestrator combine their findings. For simple agentic systems, you can just implement the logic
+5:24
+of your desired workflow yourself. As things get more complicated, however, there's a wide variety
+5:30
+of tools, libraries, and platforms designed to help you build and manage an agentic system.
+5:36
+The creative possibilities when building agentic systems are truly endless. There's also an important
+5:43
+mindset shift at play here. LLMs start to look a little less like standalone solutions and more
+5:50
+like modular pieces that fit inside a larger workflow. Suddenly, you're more than happy to
+5:57
+use smaller models or models that only excel at a few tasks because their capabilities are well
+6:03
+aligned with the portions of the workflow they're responsible for. Adding agentic components can
+6:09
+give you the flexibility to build even more capable rack systems.

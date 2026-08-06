@@ -1,0 +1,162 @@
+0:00
+Once you have a basic prompt template set up for your RAG system, you can start trying more
+0:04
+advanced prompt engineering techniques. Let's have a look at a few of those and when you'd
+0:09
+want to use them. In-context learning is a technique which allows you to help the LLM
+0:15
+learn what kind of output you wanted to generate by adding examples of them to the prompt. For
+0:21
+example, if you're building a customer service chatbot, your prompt can include examples of
+0:26
+previous customer requests, as well as high quality responses to those requests. These
+0:32
+examples help the LLM learn the structure and tone it should use when it generates new responses.
+0:38
+Just like in RAG, you're adding additional information to the prompt to ground the way
+0:43
+the LLM responds. If you include many examples, this approach is called few-shot learning.
+0:50
+If you include just one example, it's called one-shot learning. There's a few ways to implement
+0:56
+in-context learning. You could just hard code one or more example questions and responses
+1:01
+into your prompt. In situations where you want a stable set of LLM behaviors, this alone could help
+1:08
+improve response quality. If you want to change up the examples each time, however, you can use
+1:14
+RAG to retrieve example questions and responses from your knowledge base. For example, if you're
+1:22
+working on that same customer service chatbot, you could index successful customer chats into
+1:27
+your vector database. When a new customer writes in about a particular topic, you can retrieve the
+1:33
+text of previous conversations about that topic and inject that text into your prompt. In many ways,
+1:41
+this is just normal RAG, but the fact that you're specifically retrieving example responses can help
+1:47
+further improve the quality of the LLM's response. Another powerful collection of prompt engineering
+1:53
+techniques essentially encourages the LLM to reason through prompts in a step-by-step manner.
+1:59
+For example, you can tell the LLM to first think aloud or think step-by-step about the best way to
+2:06
+approach the problem before actually providing a final answer. The idea is you're essentially giving
+2:12
+the language model a scratchpad to organize its thoughts before answering. A common way to do this
+2:19
+is to tell the LLM that tokens between scratchpad tags are considered a space for thinking and
+2:25
+brainstorming and not part of its final answer. A similar approach is called chain-of-thought
+2:31
+prompting. In this approach, the LLM is instructed to tackle questions in a step-by-step manner
+2:37
+rather than immediately answering them. The LLM might be instructed to first
+2:42
+generate the steps needed to answer a question and then follow those steps. Encouraging the LLM to
+2:49
+plan and take this incremental approach can increase the likelihood that the final responses
+2:54
+are more accurate. Since the LLM will show its work, so to speak, it's also easier to trace down
+3:00
+issues when the LLM's reasoning falls apart. Reasoning-oriented strategies like these have
+3:06
+been so successful that many LLMs are now designed to be reasoning models right out of the box.
+3:12
+Reasoning models excel at complex reasoning tasks such as coding, mathematics, planning,
+3:19
+puzzles, and complex workflows that require multiple steps. Under the hood, these reasoning
+3:24
+models first generate reasoning tokens where they might plan ahead and consider options
+3:30
+much like the scratch pad you saw before. Then they output response tokens with the intended
+3:36
+final response to the user. Some providers of reasoning models will only provide access to
+3:42
+those final response tokens. Others allow you to access the reasoning tokens as well.
+3:47
+These reasoning tokens are part of what makes these models more accurate than their non-reasoning
+3:52
+counterparts, but they're still just regular tokens with all the associated costs of generating them.
+3:59
+As a result, reasoning models are typically slower and more expensive to run. Depending on your
+4:05
+context, building a RAG system around a reasoning model may be well worth the higher costs of each
+4:11
+LLM call. For example, reasoning models can be particularly good at assessing the relevance of
+4:18
+the retrieved documents and can be more skilled at deciding how best to incorporate that information
+4:23
+into a response, especially one that requires more complex reasoning steps. Interestingly,
+4:30
+many prompt engineering techniques don't work as well with reasoning models. For example,
+4:36
+you don't need to ask them to think step-by-step as this is something they've already been trained
+4:41
+to do. They also may not do well with in-context learning as they try to incorporate the provided
+4:48
+example responses into the current question being answered. They tend to perform better with
+4:54
+specific goals that you want them to work towards and very specific information about the format
+5:00
+that you want them to answer in. You can still provide high-level guiding principles and explicitly
+5:07
+state approaches you want the model to take or avoid. After that, however, you can just give them
+5:13
+the entire context dump of documents retrieved from your RAG system. New models, including reasoning
+5:19
+models, are constantly being released, however, and most LLM providers will include information
+5:25
+about how best to prompt them. As you start employing more prompt engineering techniques,
+5:31
+context window management will become important. Remember, the initial prompt and whatever tokens
+5:37
+an LLM generates for the completion both use up portions of its context window. Whether you're
+5:43
+injecting documents from your retriever, adding in-context learning examples to every prompt,
+5:49
+or having a reasoning model plan its responses before answering a question, all of these advanced
+5:55
+techniques increase the length of your prompt, the generated response, or both. It's easy to rapidly
+6:03
+fill up your context window if you're not paying attention. With single-turn conversations, the best
+6:09
+fix is to just validate you're getting value from your prompt engineering technique. If chain-of-thought
+6:15
+prompting or in-context learning isn't giving you better performance, it's better to just remove
+6:20
+those components from your system. Multi-turn conversations can quickly eat up your context window
+6:26
+as each back and forth message needs to be included in the prompt. A variety of approaches
+6:31
+collectively referred to as context pruning addresses this issue. A simple solution is to
+6:38
+keep only a fixed number of recent messages in the prompt. For example, the last five sent by the user
+6:45
+and the LLM. More sophisticated approaches use a separate LLM to summarize older messages, shrinking
+6:52
+their size but preserving their key points. If you're using a reasoning model in a multi-turn
+6:57
+conversation, you'll almost certainly want to drop reasoning tokens from the chat history and just
+7:03
+keep the response tokens. Likewise, in a RAG system, you usually only want to include the chunks
+7:10
+retrieved to support the response to the most recent question, not every question that came
+7:15
+before it. Of course, if your application needs multi-turn conversations with deep and rich context,
+7:22
+you can always switch to using a model with a longer context window. That said, you'll still
+7:28
+want to be thoughtful about how you design prompts as even on models with longer context windows,
+7:34
+long prompts are slow and expensive to run. Prompt engineering techniques can improve the performance
+7:40
+of your LLM but your RAG system doesn't necessarily need to employ them. A simple prompt template and
+7:47
+a well-written system prompt might be all you need for your project. When it comes to more advanced
+7:53
+techniques, I advise you add them to your project only after it's clear you need them. Prompting in
+8:00
+general can be more of an art than a science, so whatever strategies you use, experiment with
+8:06
+different prompts and find the ones that work best for your system.

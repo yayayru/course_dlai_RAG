@@ -1,0 +1,250 @@
+0:00
+Your retriever just returned a bunch of relevant documents, and you're ready to build your augmented prompt.
+0:05
+Send it to your LLM and get back a response grounded in that retrieved information.
+0:10
+You've seen this process many times in this course,
+0:13
+but now it's time to dive one level deeper and ask, why does this even work?
+0:19
+How is an LLM able to make sense of that retrieved information?
+0:23
+More importantly, how can you use that knowledge to build even more capable RAG systems?
+0:29
+To answer all of that, let's look a little deeper at the transformer architecture that LLMs are built on.
+0:35
+The transformer was proposed in a seminal paper from 2017 titled Attention is All You Need,
+0:42
+which was focused on the problem of machine translation.
+0:45
+The transformer had two major components, an encoder and a decoder.
+0:51
+The encoder would process the original text, say a paragraph written in German,
+0:56
+developing a deep contextual understanding of the paragraph's meaning.
+1:00
+The decoder would then use this deep understanding of the German paragraph to generate a new English version of it.
+1:08
+Most LLMs only include the second decoder component, as they just care about text generation.
+1:16
+Encoders, meanwhile, are typically used inside embedding models,
+1:20
+since their goal is to develop rich semantic representations of text.
+1:25
+Let's trace a prompt's journey through an LLM, and therefore through the decoder component of a transformer.
+1:32
+The first thing that happens is your prompt is split into tokens.
+1:36
+Once the text is tokenized, each token is assigned an initial dense vector representation.
+1:43
+This vector is basically a first guess of the meaning of that token.
+1:48
+These guesses are static, so every time you feed an LLM the same token,
+1:53
+it'll be assigned the same first guess vector.
+1:57
+Next, each token is given a positional vector that captures where it's located in the prompt.
+2:04
+Once these first guess embedding vectors and positional vectors have been created,
+2:09
+they're sent along for processing.
+2:11
+The tokens now enter the attention mechanism of the transformer.
+2:15
+Each token essentially looks at every other token in the prompt,
+2:19
+and can see both their meaning and their position.
+2:23
+Each token then decides which other tokens it should pay the most attention to.
+2:29
+Attention is basically a fancy way of saying which other tokens should have the biggest impact on my meaning.
+2:38
+In a sentence, the brown dog sat next to the red fox,
+2:43
+the word dog would probably pay the most attention to brown and sat,
+2:49
+since those words directly relate to the dog.
+2:53
+You can think of dog as assigning 70% of its attention to brown,
+2:58
+20% to sat, and the remaining 10% distributed across all the other tokens.
+3:04
+The mechanism used to assign this attention is called an attention head,
+3:08
+and most models actually include many attention heads
+3:12
+that specialize in different types of relationships between words.
+3:16
+You can think of this as one attention head
+3:19
+that specializes in relationships between objects and their descriptions,
+3:23
+so the word fox might focus all of its attention on brown.
+3:28
+Another attention head might instead specialize in spatial relationships between objects,
+3:35
+and so in that head, fox might pay much more attention to sat and next.
+3:41
+In reality, the relationships captured by each attention head
+3:45
+are not a neat set of relationships assigned by humans,
+3:49
+but are rather a complex and abstract set of relationships learned during the model's training.
+3:56
+Smaller models might use 8 to 16 attention heads,
+3:59
+but larger ones might use over 100.
+4:02
+The reason this is important is that not only is every token
+4:06
+tracking its relationship to every other token in the text,
+4:09
+but they're doing so many different times over,
+4:13
+each time with a slightly different point of view or focus.
+4:17
+The result is, the attention mechanism develops a very detailed representation
+4:22
+of the relationships between all the tokens in the text.
+4:26
+Once every token has assigned all its attention scores,
+4:30
+the information enters the feedforward phase.
+4:33
+This is by far the biggest part of the LLM,
+4:37
+meaning it contains by far the most parameters.
+4:41
+Based on each token's original embedding, position, and attention,
+4:46
+it assigns updated vector embeddings for each token.
+4:50
+These new vectors are basically a second guess of each token's true meaning,
+4:56
+but now informed by the context of the other tokens in the text.
+5:01
+Most LLMs then repeat this entire process.
+5:05
+The second guess vectors are fed back into the attention and feedforward mechanism,
+5:10
+generating new and more refined third guess vectors of each token's meaning.
+5:16
+A typical LLM might actually pass these vectors through these layers
+5:20
+somewhere between 8 to 64 times,
+5:23
+gradually refining its understanding at each stage.
+5:27
+Now, the LLM is ready to start generating.
+5:30
+Based on the highly refined vector embeddings it generated,
+5:34
+the model asks, based on my training data,
+5:37
+what tokens are likely to come next?
+5:40
+This is calculated as a probability distribution
+5:43
+across all tokens in the model's vocabulary.
+5:46
+Typically, a handful of tokens have a high probability of appearing next,
+5:51
+but if your model recognizes 100,000 tokens,
+5:55
+each one is assigned a probability even if the vast majority are essentially zero.
+6:01
+Finally, the LLM picks one token from this distribution,
+6:05
+weighting the choice by every token's assigned probability.
+6:09
+Probable tokens are chosen more often,
+6:12
+but in theory, any token has at least a tiny chance of being picked.
+6:17
+You'll learn more about how to adjust these probabilities
+6:20
+and so how the LLM chooses new tokens later in this module.
+6:24
+The chosen token is appended to the end of the prompt,
+6:27
+and after all that work, the LLM has generated one more token.
+6:32
+If you want to generate a second token,
+6:34
+the model has to repeat the entire process,
+6:37
+only this time considering both the original tokens
+6:40
+and the one it added on.
+6:42
+This ensures new tokens make sense in the context
+6:46
+of both the original tokens and the ones it generated.
+6:50
+This means early random token choices will influence
+6:54
+which token is chosen later on as well.
+6:57
+To generate a full completion,
+6:59
+the model does this process over and over again
+7:03
+until it either reaches a token limit you've set for that completion
+7:07
+or it chooses to generate a special end-of-completion token
+7:12
+indicating that it's done.
+7:14
+The tokens that the LLM generated might complete a phrase
+7:18
+or an answer to a question,
+7:20
+but whatever their purpose,
+7:22
+they can be de-tokenized into plain text and returned to the user.
+7:27
+That was quite a journey through an LLM.
+7:29
+So let's look at how parts of this transformer architecture
+7:32
+motivate many elements of the design of a RAG system.
+7:36
+First, it helps to motivate why RAG works in the first place.
+7:40
+LLMs are able to deeply understand the meaning
+7:43
+and relevance of the information added to the prompt.
+7:46
+This is thanks to the processing done by the attention mechanism
+7:49
+and the world knowledge contained in the feed-forward layers.
+7:54
+Second, it highlights that LLMs are still inherently random.
+7:58
+Even if you inject meaningful information in your prompt,
+8:02
+LLMs may randomly choose not to generate text based on that information.
+8:07
+Controlling this randomness and confirming your LLM grounds its answers
+8:12
+in retrieved information is still necessary and important.
+8:16
+Third, it just highlights how computationally expensive an LLM is.
+8:21
+Generating a single token takes a lot of processing
+8:25
+and that cost actually grows as the length of the prompt or completion does.
+8:30
+After all, each token needs to look at every other one
+8:35
+to fully understand its own meaning.
+8:38
+As you'll explore later, most costs from running a RAG system
+8:43
+come from running these powerful but expensive transformer models.
+8:47
+That's a good summary of how LLMs work under the hood.
+8:51
+Now let's turn our attention, no pun intended,
+8:54
+to how you can refine their behavior inside a RAG system.

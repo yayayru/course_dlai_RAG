@@ -1,0 +1,124 @@
+0:00
+While RAG is a popular and powerful approach for improving the performance of an LLM,
+0:05
+another technique called fine-tuning is also frequently used. Rather than just augmenting
+0:11
+the prompt, fine-tuning retrains an off-the-shelf LLM to improve performance in a specific context.
+0:19
+Let's look more closely at fine-tuning and what role it can play in your RAG system.
+0:25
+The core idea of fine-tuning is to retrain a language model with your own data to update
+0:30
+its internal parameters. Typically, this is done through supervised fine-tuning, or SFT.
+0:38
+It's supervised because the model is retrained using a labeled dataset from the domain the
+0:44
+model is being adapted to. Instruction fine-tuning, in particular, refers to an approach in which the
+0:50
+dataset includes both a set of instructions to the language model, typically a prompt or
+0:56
+a question, as well as an expected ground truth best answer. To fine-tune the model, you feed it
+1:04
+the input instructions and see how close the output is to the correct answers from your dataset.
+1:10
+You then use these results to adjust the model's internal parameters to better align with the
+1:15
+correct answer. This process is very similar to the way language models are initially trained,
+1:21
+but the dataset used is taken from a specific domain the model is being fine-tuned to specialize in.
+1:29
+Suppose you want to fine-tune a model to work in the healthcare domain. To start, you would choose
+1:35
+a general purpose language model. If you ask this model about a specific set of symptoms,
+1:41
+say joint pain, skin rash, sun sensitivity, the language model might give you a generic answer
+1:47
+in a generic tone. This is because the off-the-shelf model hasn't been specialized on medical data.
+1:54
+If you use instruction tuning on that same model, training it on a lot of medical domain instructions
+2:00
+and responses, the model essentially becomes much more of an expert at answering that kind of
+2:07
+question. Now, if you gave it that same prompt, it'd be able to respond with more accuracy, detail,
+2:14
+and in a style that's more appropriate for the medical domain. Fine-tuning can work well in
+2:20
+instances like this one where you want the model to specialize in a particular domain,
+2:24
+like providing an initial medical diagnosis or summarizing legal briefs. While the model's
+2:30
+performance will improve in that domain, fine-tuning can actually decrease performance
+2:35
+in other domains. The fine-tuning process is only optimizing the model's performance
+2:41
+in the target domain, which means that sometimes adjustments made to the model's
+2:46
+internal parameters will lead to lower performance with other kinds of requests.
+2:52
+So long as the model will only be used within the domain it's being specialized for, however,
+2:57
+this trade-off is usually worth it. A particular place this is true
+3:01
+is for small models used inside agentic systems. If you know ahead of time a model's only job
+3:09
+will be to determine whether a prompt requires retrieval from a vector database,
+3:13
+you're more than happy to use a small, lightweight model and heavily fine-tune that model to only
+3:19
+perform well at that single task. It's worth noting fine-tuning is usually not a great way
+3:26
+to teach an LLM new information. The way a model is adapted by fine-tuning tends to have a greater
+3:33
+impact on how the model responds to prompts, like the words it uses, style, or structure,
+3:39
+and less pronounced impact on what information the model knows. This last point hits at some
+3:46
+of the pros and cons of RAG versus fine-tuning, so let's talk about when it makes sense to use each.
+3:53
+In short, the current consensus is that RAG is best at knowledge injection and fine-tuning
+4:01
+is best at domain adaption. If you need the LLM to have access to new information,
+4:07
+retrieval augmented generation is the best solution. You can inject that information into
+4:12
+the prompt and an off-the-shelf LLM will be able to incorporate that new information in its response.
+4:19
+If, on the other hand, you want your LLM to specialize in a certain task or domain,
+4:25
+fine-tuning is the way to go. Especially if your LLM will be handling one discrete task,
+4:31
+like routing prompts in your RAG system, or responding to only a certain type of prompt,
+4:37
+fine-tuning makes a lot more sense. Fine-tuning and RAG can also be used together. In particular,
+4:44
+you might fine-tune a model specifically to incorporate retrieved information into its final
+4:50
+responses. In other words, you're helping the model specialize in its role within the RAG system.
+4:57
+When deciding whether to use fine-tuning or RAG, the best choice might be both. Each approach
+5:04
+improves the model's performance in different ways and there are benefits to using both of
+5:10
+them together. If you want to incorporate fine-tuning into your own RAG system, I recommend
+5:16
+you take a separate course on fine-tuning and explore how to fine-tune your own language model.
+5:21
+Fine-tuning is a complex topic and it'd be impossible to adequately cover it within this
+5:26
+course. That said, often you can find models that have already been fine-tuned for you
+5:33
+and adapted to a particular task or domain. If you think your system needs a fine-tuned model,
+5:39
+many online repositories of previously fine-tuned models are available and you might be able to use
+5:44
+one of those without doing the fine-tuning yourself. Fine-tuning and RAG are sometimes
+5:50
+described as competing alternatives, but they're more accurately viewed as complementary tools.
+5:57
+Adding fine-tuned models into your RAG pipeline or even fine-tuning the core LLM that generates
+6:03
+your final response can help improve your system's performance. While you won't dive into
+6:09
+fine-tuning techniques in this course, it's definitely worth exploring as you continue
+6:14
+to build your generative AI skills and look for ways to optimize your RAG systems.

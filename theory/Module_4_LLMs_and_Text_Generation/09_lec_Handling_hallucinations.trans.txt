@@ -1,0 +1,232 @@
+0:00
+Hallucinations are a constant concern when working with LLMs,
+0:03
+and even a well-designed RAG system can still hallucinate.
+0:08
+Detecting hallucinations, reducing them, and ensuring the LLM accurately cites sources
+0:14
+are therefore the most important parts of building your RAG pipeline.
+0:18
+Let's have a look at a few ways this is done.
+0:22
+Imagine you get your first RAG system up and running.
+0:25
+A customer service chatbot for an online store.
+0:28
+A user writes in and asks if the company offers student discounts.
+0:33
+The retriever finds information about discounts for both seniors and new customers,
+0:38
+both of whom would receive 10% off.
+0:41
+Meanwhile, the LLM system prompt encourages it to be helpful with customers.
+0:47
+All of these factors influence the LLM, which responds,
+0:50
+Absolutely, you can get 10% off with a valid student ID,
+0:55
+the same great discount we offer our seniors and new customers.
+0:59
+The user is delighted and continues shopping on your site,
+1:02
+eager to claim their discount at checkout.
+1:05
+The only problem?
+1:06
+That student discount doesn't actually exist.
+1:09
+The LLM just made it up.
+1:11
+It's important to remember why LLMs hallucinate in the first place.
+1:15
+A language model is designed to produce probable text sequences,
+1:19
+with a bit of randomization thrown in for variety.
+1:23
+Probable text sequences are often factually accurate, but not always.
+1:28
+And language models aren't designed to differentiate between true and false,
+1:33
+just probable and improbable.
+1:36
+Hallucinations are problematic for a few reasons.
+1:39
+The first is obvious enough.
+1:41
+You just don't want your language model to provide inaccurate information to your user.
+1:46
+The second is that, almost by definition, hallucinations sound plausible.
+1:52
+And so can be more difficult to detect than total nonsense.
+1:56
+Finally, over time, occasional hallucinations
+1:59
+can cause your users to lose trust in your RAG system,
+2:03
+even if the majority of generated content is accurate.
+2:06
+Of course, a big reason you'd build a RAG pipeline is to reduce hallucinations.
+2:11
+The information you retrieve from your knowledge base can help ground an LLM's responses
+2:16
+and possibly provides information missing in the model's training data.
+2:20
+Even so, RAG systems are still prone to hallucination,
+2:24
+so additional steps to prevent them are necessary.
+2:27
+Hallucinations can come in many types and sizes.
+2:30
+Going back to that discount,
+2:32
+an LLM might accurately describe the very real senior discount and how to claim it,
+2:38
+but misstate the discount as 5% instead of 10%.
+2:42
+In more extreme cases, the LLM might inaccurately state
+2:46
+there isn't a senior discount when actually one exists.
+2:50
+Or as you saw earlier, invent entirely new discounts your company doesn't offer.
+2:55
+This means you'll need to evaluate the text your LLM generates on many levels
+3:00
+if you want to feel confident in its accuracy.
+3:02
+Now here comes the cold, hard truth.
+3:06
+There's no perfect solution for hallucinations.
+3:09
+Or at least not currently.
+3:11
+Luckily, however, RAG is one of the best approaches currently available
+3:16
+and there's ways you can refine RAG systems
+3:19
+to further decrease the frequency of hallucinations.
+3:22
+To start, think through how you'd detect hallucinations in LLM output
+3:27
+if you didn't have a knowledge base.
+3:30
+Without a trusted external source of truth to compare that output to,
+3:34
+your options are pretty limited.
+3:36
+One approach, however, is self-consistency checking,
+3:40
+where you have the model repeatedly generate completions for the same prompt
+3:44
+and check if the factual information contained within them is consistent.
+3:49
+The underlying idea is that if the language model is hallucinating information,
+3:54
+it'll do so inconsistently.
+3:57
+And factual differences across completions will be detectable.
+4:01
+In practice, however, this method can be costly and unreliable.
+4:06
+If you have a knowledge base to reference, that's the best place to start.
+4:10
+Since inside a RAG system, you do have access to a knowledge base,
+4:14
+the best approach to decrease hallucinations
+4:17
+is to ensure responses are grounded in retrieved information.
+4:21
+For example, you could modify your system prompt
+4:24
+to say that the LLM can only make factual claims based on retrieved information.
+4:30
+If you want further confidence that the LLM is basing its responses on retrieved documents,
+4:35
+you can further require the LLM to cite its sources.
+4:39
+Sometimes, this just means prompting the model to cite sources
+4:43
+at the end of each sentence or paragraph.
+4:46
+This can further increase the likelihood
+4:48
+that the LLM grounds its responses in the retrieved sources.
+4:51
+And citations also make it easier for a human reader to verify claims in the response.
+4:57
+A risk with this approach, however,
+4:59
+is that the LLM will just hallucinate the citations.
+5:03
+Some models fine-tuned to cite sources will generate valid citations more reliably.
+5:09
+But if you want more confidence in your citations, you'll need to use an external system.
+5:14
+For example, ContextCite is a system that scores
+5:17
+how well a response is grounded in a set of source materials.
+5:22
+The model processes the response sentence by sentence,
+5:25
+and it attributes each sentence to one of the context documents
+5:29
+that were retrieved and provided to the LLM.
+5:32
+ContextCite then generates tags for each sentence,
+5:37
+noting which document is the source of that sentence.
+5:40
+In cases where the statement does not have supporting material,
+5:44
+it's labeled no source.
+5:46
+Some implementations may even provide a similarity score
+5:49
+between the sentence and the identified source document.
+5:53
+These tags can either be used to generate source citations in the final generated LLM output,
+5:58
+or as a part of evaluation of how frequently the LLM is grounding its responses
+6:04
+in the documents retrieved by a RAG system.
+6:07
+Recent efforts, such as the ALCE benchmark,
+6:10
+aim to measure how well a system references and cites sources when generating responses.
+6:16
+The system provides pre-assembled knowledge bases and sample questions.
+6:20
+You would then use your RAG system on these prompts
+6:23
+to ask the ALCE system to evaluate the generated response.
+6:28
+Scores are generated for three key metrics,
+6:31
+fluency, correctness, and citation quality.
+6:35
+In other words, how clear is the final text,
+6:38
+how factually accurate,
+6:40
+and how well do the provided citations align with the correct sources to cite.
+6:45
+These benchmarks don't control hallucinations in your production system,
+6:49
+but they do give some sense of how well your system is avoiding hallucinations and citing sources.
+6:55
+Hallucination detection is a constant challenge in an LLM-based system.
+7:00
+That said, by building a RAG system,
+7:03
+you're already taking the single most effective step to minimize hallucinations.
+7:08
+After that, focus your energy on ensuring the LLM grounds its answers
+7:13
+and retrieved information by refining your system prompt.
+7:17
+Finally, test your system using hallucination-focused benchmarks
+7:21
+to ensure your system is providing grounded, well-cited responses.
+7:27
+Together, these approaches can significantly reduce hallucinations
+7:31
+and help you build a system that provides trustworthy responses.

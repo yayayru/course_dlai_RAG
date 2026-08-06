@@ -1,0 +1,160 @@
+0:00
+A major decision when building a RAG application is which LLM you'll use.
+0:05
+There's a huge variety of LLMs available, with different levels of performance, unique
+0:10
+capabilities, and different cost profiles. Choosing the right one can have a big impact
+0:16
+on your application's speed, quality, and budget. So let's have a look at how you can make the
+0:21
+choice that best fits your project. Let's start with some easily quantifiable differences between
+0:27
+LLMs. Model size is a frequently quoted metric, usually measured by how many billions of
+0:33
+parameters the model has. Small models may have between 1 and 10 billion parameters,
+0:39
+while larger models have 100 to 500 billion, and possibly more. Larger models are typically,
+0:46
+but not always, more capable than their smaller counterparts, but they're always more expensive
+0:51
+to run. Cost is of course an important factor. LLM providers typically charge you for a fixed
+0:58
+price per million tokens, sometimes with different prices for input and output tokens. You can
+1:05
+generally expect newer, larger, and more capable models to cost more. The context window of a model
+1:12
+tells you the maximum number of tokens an LLM can process, split between both the prompt and
+1:18
+the completion. While large limits offer more flexibility to have long prompts and completions,
+1:24
+you still pay per token. The time to first token and speed, as expressed in tokens per second,
+1:32
+is another important factor. If your RAG system depends on real-time interactions,
+1:37
+you might be willing to tolerate worse performance in other areas for a fast and low latency model.
+1:43
+The training cutoff date, or knowledge cutoff date, of a model tells you the last point in time
+1:48
+represented in a model's training data. Even in a RAG system, a later cutoff is typically
+1:54
+considered preferable, especially in contexts where a model will need to respond to questions
+2:00
+on recent events. While easily quantifiable metrics might help narrow down which models you consider,
+2:06
+usually you care most about the quality of a model, which can be a lot harder to quantify.
+2:13
+Quality here means everything from an LLM's ability to reason through complex math problems
+2:19
+to simply producing text that's pleasant to read. To help compare models across all these different
+2:26
+dimensions of quality, there is a dizzying array of LLM benchmarks available that try to score and
+2:32
+compare LLMs. There's no single authoritative list of benchmarks that you can turn to, but
+2:38
+understanding the variety of options available can help you choose the benchmark that makes the
+2:43
+most sense for your project. Benchmarks come in three high-level varieties, automated benchmarks,
+2:49
+human scoring, and LLM as a judge. Automated benchmarks score LLMs on tasks that can be
+2:57
+assessed with code. A classic format for this kind of benchmark might be a multiple choice test
+3:03
+on a particular field of interest, or a series of mathematical or coding challenges
+3:08
+where the LLM's responses can be easily validated by a computer. A good example benchmark here is
+3:15
+MMLU, or Massive Multitask Language Understanding, which covers 57 subjects ranging from STEM
+3:23
+to humanities to law using multiple choice tests. Other benchmarks test LLMs on everything from math
+3:30
+problems to common sense reasoning questions. You'll frequently see LLM providers market their
+3:36
+models' performance on these benchmarks and can likely find the one that is relevant to your
+3:41
+project. Human-evaluated benchmarks typically work by having two anonymous LLMs respond to the same
+3:49
+prompt and asking human evaluators to choose which response they prefer. These results are fed to the
+3:56
+same Elo algorithm used to rank chess players, resulting in a comparative leaderboard of LLMs.
+4:02
+A popular host of this type of rating system is called LLM Arena, whose rankings are one of the
+4:07
+most widely cited LLM benchmarks. These human-graded rankings capture nuanced quality factors that
+4:14
+automated benchmarks can't easily measure. While automated and human-graded metrics will often agree,
+4:20
+when their scores diverge, it can highlight important nuances in model performance.
+4:26
+LLM as a judge benchmarks use one LLM to rate another LLM's responses to a collection of test
+4:33
+questions. The judge LLM has access to a set of reference answers and essentially just determines
+4:40
+how often the LLM being evaluated provides an answer that is close to the correct one.
+4:46
+This gives you a win rate that can be used to compare one LLM versus another. LLM as a judge's
+4:52
+primary upside is that it's a relatively cheap and flexible way to evaluate LLMs.
+4:59
+One downside of this approach is that the judge needs to be carefully calibrated because they
+5:05
+have a tendency to prefer answers from their own family of language models. For example,
+5:11
+GPT models from OpenAI will prefer other GPT models. Gemini models from Google will prefer
+5:17
+other Gemini models. By recalibrating these off-the-shelf models, it's possible to diminish
+5:23
+this bias. Good benchmarks have a few qualities. First, they're relevant to your project. If your
+5:31
+application won't ever generate code, comparing LLMs on a code generation benchmark isn't much help.
+5:38
+Next, benchmarks need to be difficult to do a good job differentiating between high and low
+5:44
+performing models. If every model scores well on a benchmark, it's just not that useful. Benchmarks
+5:51
+should be reproducible, meaning the scores themselves don't change drastically between
+5:56
+testing runs and the outcomes quoted by the model providers should be verifiable. Benchmarks should
+6:02
+also align with real-world performance. An LLM that does well on a programming benchmark should
+6:09
+actually write good code in practice. Here, you may need to do some reading on developer forums
+6:14
+to ensure benchmark scores are a good indication of actual performance. A reason this problem can
+6:20
+arise is data contamination. Large language models are trained on billions if not trillions of tokens
+6:27
+scraped from the internet. It's possible that the data set used by the benchmark are included in
+6:33
+that training data. In this case, the language model might over-perform on that benchmark
+6:39
+because it's already seen the exact questions and answers during its training. While benchmarks can
+6:45
+help you differentiate between models, they also just highlight how rapidly the field as a whole
+6:50
+is evolving. Here's the general pattern you'll see repeated for most LLM evals. At first, the average
+6:58
+score for each is quite low. Then, over only a few years, it becomes commonplace for models to perform
+7:04
+on par with human experts. These benchmarks are called saturated, meaning they no longer help
+7:10
+differentiate between models, as almost all advanced models score near the maximum. At that point,
+7:18
+new and more challenging benchmarks need to be introduced to meaningfully measure improvements
+7:22
+in performance. Those new evals will quickly become saturated themselves, however, and even
+7:28
+newer ones will need to be introduced. The main takeaway here is that models released today
+7:33
+are usually significantly better than models from even a couple of years ago, and that any model you
+7:39
+choose today likely will need to be replaced as more capable models are rapidly introduced.
+7:45
+Choosing the right LLM is an important but temporary decision for how you design your
+7:50
+RAG system. Easily quantifiable factors like cost or latency can help narrow down your choice, and a
+7:57
+wide variety of quality metrics can point you towards the best models to align with your use
+8:03
+case. Thanks to the speed at which models are improving, you should plan on eventually swapping
+8:08
+in newly released models that suit your RAG system.
