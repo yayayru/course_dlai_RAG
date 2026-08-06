@@ -1,0 +1,110 @@
+0:00
+In a production RAG system, you'll typically store and retrieve vectors from a specialized database
+0:04
+called a vector database. Let's explore some common operations with a vector database and
+0:09
+how they lay the foundation for performing retrieval inside a RAG application. A vector
+0:14
+database is a database that has been designed from the ground up to store high-dimensional
+0:19
+vector data and implement vector-oriented algorithms like the Approximate Nearest
+0:24
+Neighbors algorithm you just saw. They grew in popularity in the early 2020s in response to the
+0:30
+widespread availability of large language models and the explosion of vector embedding-based
+0:35
+techniques like semantic search. Standard relational databases performed poorly at semantic
+0:41
+search where their performance was much closer to the highly inefficient K-Nearest Neighbors
+0:46
+algorithm. Vector databases are optimized for tasks like building the proximity graph that
+0:52
+powers HNSW search or computing vector distances, and so scale well and operate
+0:58
+significantly faster in most vector-based applications, in particular building a RAG system.
+1:05
+The vector database you'll be using in this course is called Weaviate. It's a popular
+1:09
+open-source vector database that you can run both locally or in the cloud. There are a wide variety
+1:15
+of other vector databases available on the market as well. If you choose a different vector database
+1:20
+for future projects, they'll almost certainly provide very similar functionality to what I'll be
+1:25
+showcasing with Weaviate. The goal here is to get hands-on with some workflows that are common to
+1:30
+any RAG project. There's a few steps involved in getting a vector database ready to process
+1:36
+searches, some of which are handled automatically for you. You'll need to set up the database,
+1:42
+load your documents, create the sparse vectors that will power keyword search, create dense
+1:47
+embedding vectors that power semantic search, and finally create the index that will power
+1:52
+your ANN search algorithm, like the HNSW index you just saw. At that point, you're ready to run
+1:59
+actual searches. In the following ungraded lab, you'll get to see all these steps in detail,
+2:06
+but let's go through a couple of examples to see how these steps are handled in Weaviate.
+2:11
+The first step to working with Weaviate is either creating a database instance or connecting to an
+2:16
+existing one. You'll see examples of how this is done in the ungraded lab. Next, you'll need to
+2:23
+create a collection to hold your data. The collection I've made here is called article,
+2:28
+and will hold the title and body of news articles. This code also specifies that each data type will
+2:35
+be text. More importantly, this call indicates which embedding model or vectorizer should be
+2:42
+used to create semantic vectors for each article added. Now that you've configured your collection,
+2:49
+it's ready for you to add data into it. This code is adding data into the collection using
+2:56
+the batch method of the collection. Batch.addObject actually adds the object into the collection,
+3:03
+but it also counts and tracks errors, making it possible to correct them afterwards,
+3:07
+or break the loop if too many errors are encountered. Once the data is inserted, you're
+3:13
+ready to perform vector search. In this first query, I'm specifying the collection I just created,
+3:19
+and then you can pass in a text query. Also passed in here is a particular metadata request,
+3:26
+which gives you back the distance. That'll be the distance between the query vector and the object
+3:32
+vector for each object. You can also perform keyword searches. Weaviate automatically creates
+3:39
+an inverted index for you, which allows you to map which words are used and how frequently in every
+3:45
+document. Here, you can perform a simple BM25 query that you learned about in the last module,
+3:52
+and we ask for the top three ranking documents based on this query. You can also go ahead and
+3:57
+combine vector search with keyword search in the form of hybrid search. With hybrid search,
+4:03
+what happens is both keyword and vector search will be performed in the background in parallel,
+4:09
+and then using this alpha parameter, which is set to 0.25 right now, you weigh the scores from
+4:16
+vector search and keyword search accordingly. So with alpha at 0.25, vector search gets a weighting
+4:24
+of 25%, and the other 75% goes to keyword search. Those get re-ranked accordingly, and then we get
+4:33
+the top three back out. In production and practice, this is what the majority of companies use,
+4:39
+because it allows you to balance the semantic similarity of vector search and the strict
+4:44
+matching similarity of keyword search. You can also then go ahead and apply filters on top of
+4:50
+this. For example, here you can have a filter that is applied to a particular property, and that
+4:56
+checks for the value at that property. If it matches, the object passes our filter and can be
+5:02
+returned. If it doesn't match, it's not returned. So the entire loop from beginning to end looks
+5:08
+something like this. You configure the database, then load and index your data, and finally you
+5:15
+write a particular query which includes hybrid search filters. That's a good overview of how to
+5:21
+use a vector database. Check out the UNGRADED lab to get hands-on with all of these steps.

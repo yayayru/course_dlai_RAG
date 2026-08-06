@@ -1,0 +1,236 @@
+0:00
+While keyword and semantic search form the foundation of a production retriever,
+0:04
+as you scale up these techniques, new issues arise.
+0:08
+If implemented naively, vector search in particular scales poorly,
+0:13
+requiring significant computational resources and adding latency to your system.
+0:19
+Let's look at the algorithm underlying vector search to understand the source of the problem,
+0:24
+and then explore how we can improve it.
+0:27
+The simplest form of vector retrieval is called k-nearest neighbor search,
+0:31
+and it's one you've seen throughout the course so far.
+0:34
+First, you create an embedding vector for every document in your knowledge base,
+0:39
+as well as your prompt.
+0:41
+Then, you calculate the distance between the prompt vector and every document vector.
+0:48
+You then sort documents based on their distance from the prompt vector.
+0:52
+The user can then choose a number, k,
+0:55
+which is just how many of these nearest neighbor documents to return.
+0:59
+k-nearest neighbors is easy to understand and easy to implement.
+1:04
+The problem is that it scales terribly.
+1:08
+The number of calculations each search requires
+1:11
+grows linearly with the number of documents in the knowledge base.
+1:15
+If you have a thousand documents, for each search, you have to calculate a thousand vector distances.
+1:21
+If you have a billion documents, though, you have to calculate one billion vector distances.
+1:27
+That second search will be a million times slower than the first.
+1:32
+If you want your retriever to perform well at scale, you'll need a better approach.
+1:37
+To improve upon k-nearest neighbors,
+1:39
+retrievers use a family of algorithms called approximate nearest neighbors, or ANN.
+1:45
+These algorithms use clever data structures to enable significantly faster searches.
+1:52
+In order to do this, they make a small sacrifice in the quality of results,
+1:56
+meaning they aren't guaranteed to find the absolute closest documents in the knowledge base,
+2:02
+though they'll still find ones that are very close by.
+2:05
+Let's look at one typical ANN algorithm called navigable small world.
+2:11
+Before any searching is done, the algorithm creates a data structure called a proximity graph.
+2:18
+To do this, first, it calculates the distance between each vector and every other vector.
+2:24
+Then, inside this proximity graph, you add one node for every document.
+2:30
+Finally, you make an edge between each document and a few of the other documents it is closest to.
+2:37
+This results in a web-like structure.
+2:39
+You can imagine traversing the proximity graph
+2:41
+by hopping from one document to its closest neighbors along the edges that connect them.
+2:47
+Now, let's see how this proximity graph speeds up search.
+2:51
+When a prompt is received, it's vectorized to create a query vector.
+2:55
+The goal is to find the documents located closest to that query vector.
+3:00
+To do that, the algorithm randomly chooses an entry point,
+3:04
+called a candidate vector, to start with,
+3:07
+which is just one of the nodes in the proximity graph.
+3:10
+This is a truly random choice, with no assumption that it's even close to the prompt vector.
+3:17
+Now, the algorithm starts traversing the graph.
+3:20
+It looks at each neighbor of the current candidate vector
+3:24
+and calculates which of them is closest to the prompt vector.
+3:28
+Since there's only a few neighbors to consider, this is a very fast process.
+3:32
+Whichever is closest becomes the new candidate.
+3:35
+Now, the process repeats.
+3:37
+At each candidate vector, the algorithm looks to see which of the connected neighboring vectors
+3:43
+is closest to the query vector, and that becomes the new candidate.
+3:47
+The process continues until none of the neighbors are closer than the current candidate,
+3:53
+and the candidate vector is returned.
+3:56
+With small modifications, this approach can be made to return multiple documents,
+4:01
+but the core idea is still the same.
+4:03
+You're just moving across the proximity graph each time,
+4:07
+choosing whichever neighbor gets you closest to the prompt.
+4:11
+This approach doesn't necessarily find the best possible vector in the knowledge graph.
+4:15
+There might be one out there that's closer to the prompt vector,
+4:19
+but just wouldn't be reached by the algorithm,
+4:21
+because it can't pick the optimal overall path through the proximity graph.
+4:25
+Just the best path in each moment.
+4:29
+In practice, though, this algorithm finds very close vectors,
+4:32
+and much more rapidly than k-nearest neighbors.
+4:35
+While this navigable small world algorithm is already more efficient than KNN,
+4:40
+a slight variation called hierarchical navigable small world, or HNSW,
+4:46
+adds further improvement by significantly speeding up early parts of the search.
+4:52
+HNSW depends on having a hierarchical proximity graph with many layers.
+4:58
+Here's what that hierarchical proximity graph might look like
+5:01
+for a knowledge base with a thousand documents.
+5:05
+Layer 1 contains all thousand vectors,
+5:08
+and you calculate the proximity graph as normal.
+5:12
+In layer 2, you randomly drop out all but 100 vectors,
+5:17
+and you make a new proximity graph for just those 100 vectors.
+5:21
+Finally, in layer 3, you randomly drop out all but 10 vectors.
+5:28
+Again, make a proximity graph for the remaining 10.
+5:31
+In order to search this proximity graph,
+5:34
+searches begin in layer 3, the top layer.
+5:37
+The algorithm chooses a random entry point in this layer,
+5:41
+and then searches as normal to find the best candidate in layer 3.
+5:46
+Then, it drops down to layer 2,
+5:49
+starting from the best candidate found in layer 3.
+5:52
+Since there are more vectors here,
+5:54
+there might potentially be one that is closer to the prompt vector.
+5:58
+The algorithm moves through layer 2 as normal
+6:00
+until it finds the best candidate in layer 2.
+6:03
+At that point, it drops down to layer 1, the lowest level,
+6:08
+which has every vector in the knowledge base.
+6:11
+The algorithm moves through this lowest layer as normal,
+6:14
+and this time the best candidate found
+6:17
+is the one the algorithm actually returns.
+6:20
+This hierarchical approach is very efficient
+6:23
+because at the highest layers, the algorithm makes big jumps
+6:27
+to get into the approximate neighborhood of the prompt vector.
+6:31
+By the time any possible vectors are considered in layer 1,
+6:35
+the candidate vector should already be very close to the prompt vector.
+6:40
+This HNSW algorithm is significantly faster
+6:43
+than a k-nearest neighbor search.
+6:45
+As you go up in layers,
+6:47
+there are exponentially fewer vectors to navigate,
+6:50
+and so the runtime of HNSW is approximately logarithmic
+6:55
+while KNN is linear.
+6:58
+This is what allows vector search to scale up to billions of vectors
+7:02
+and still require only a few hundred milliseconds of latency.
+7:06
+You won't need to implement ANN algorithms like this one,
+7:09
+but understanding a few of their key features is still important.
+7:13
+First, they're significantly faster than k-nearest neighbors,
+7:17
+allowing vector search to still be possible at scale.
+7:21
+Second, while they tend to find documents
+7:23
+that are close to the prompt vectors,
+7:25
+they can't guarantee they'll find the absolute best matches.
+7:30
+And finally, the entire process depends on building a good proximity graph,
+7:36
+a fairly computationally intensive process
+7:39
+that luckily can be pre-computed before receiving any prompts.
+7:44
+That's a good summary of how ANN algorithms
+7:47
+make vector search possible at scale.
+7:50
+So let's now look at the tools you'll use
+7:52
+to actually implement these algorithms.

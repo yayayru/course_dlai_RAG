@@ -1,0 +1,28 @@
+0:00
+Now that you have a strong foundation in information retrieval, it's time to move all of that theory into production.
+0:06
+You could use a traditional relational database to implement most of the retrieval techniques you just saw,
+0:12
+but once you need to search millions, or even billions of documents,
+0:16
+some of those operations, in particular the vector operations underlying semantic search, will slow down significantly.
+0:24
+At this point, you'll probably want to switch over to a vector database.
+0:28
+Vector databases are databases optimized to store and search through huge quantities of vector data,
+0:35
+and as a result, they've become almost synonymous with RAG systems.
+0:40
+In this module, you'll learn why vector databases are so optimized for vector retrieval,
+0:45
+and get hands-on using one to execute a variety of different searches.
+0:49
+You'll also see a collection of techniques used in production RAG systems, like document chunking, query parsing, and re-ranking,
+0:58
+which are used in production settings to further improve the performance of a retriever.
+1:02
+As always, there will be a programming assignment to apply all these concepts at the end of the module.
+1:08
+I hope you enjoyed this module, where you'll get to apply all of your information retrieval knowledge.
+1:13
+Join me in the next video, and let's get started!
