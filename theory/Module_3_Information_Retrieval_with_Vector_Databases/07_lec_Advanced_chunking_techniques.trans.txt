@@ -1,0 +1,158 @@
+0:00
+Chunking has a variety of benefits, but by splitting documents into smaller chunks,
+0:04
+it also risks breaking up text in a way that loses relevant context.
+0:09
+Consider the sentence,
+0:10
+That night she dreamed, as she did often, that she was finally an Olympic champion.
+0:18
+Depending on where the split is placed,
+0:20
+the chunk might make it look like our dreamer is already a gold medalist,
+0:24
+and not instead dreaming of future glory.
+0:27
+Fixed size and recursive character splitting don't provide safeguards against this kind of issue.
+0:33
+So let's have a look at some more advanced techniques that try to intelligently build chunks
+0:38
+based on the meaning of a piece of text.
+0:41
+The first technique we'll explore is called semantic chunking,
+0:44
+which tries to place sentences together in chunks if they have similar meaning.
+0:49
+The algorithm works by moving through the document one sentence at a time.
+0:54
+For each sentence, it decides if it's similar enough to the previous sentences,
+0:59
+and so belongs in the same chunk, or is different.
+1:03
+To do this, both the contents of the current chunk and the following sentence are vectorized.
+1:10
+If the two vectors are below some threshold distance away from each other,
+1:14
+they have similar meanings, and the sentences are added to the same chunk.
+1:19
+This process continues until eventually the growing chunk is too different from the following sentence.
+1:26
+At that point, you cut off the chunk and restart the whole process from that next sentence.
+1:32
+When you plot this out, this looks something like this graph.
+1:36
+The threshold for vector distance, or dissimilarity, is in red.
+1:41
+The measure of how different the growing chunk is from the sentence
+1:45
+that follows it is represented by the peak line.
+1:49
+Eventually, the gap between the chunk and the next sentence crosses the threshold,
+1:54
+and a new chunk is created.
+1:57
+The result of this process is variably sized chunks that follow the train of thought of the author.
+2:03
+For example, if the author goes off on a conceptual tangent within a paragraph,
+2:09
+or pursues the same idea across two paragraphs in a row,
+2:14
+semantic chunking will place chunk splits at the appropriate locations.
+2:19
+As you might imagine, semantic chunking can be computationally expensive
+2:23
+because you're repeatedly calculating vectors for every sentence in your knowledge base.
+2:28
+In exchange, however, you'll often get high quality retrieval
+2:32
+as measured by familiar metrics like precision and recall.
+2:35
+For even more flexibility, you can try large language model based chunking.
+2:40
+Here, you give your document to a language model
+2:43
+along with instructions on the types of chunks that you want it to create.
+2:48
+For example, you tell it to separate chunks based on meaning,
+2:53
+keeping similar concepts together in one chunk,
+2:56
+and separating the text into chunks when new topics are discussed.
+3:00
+The language model then generates chunk output the same way it might generate any other text.
+3:06
+While inherently something of a black box approach,
+3:10
+this is actually a very high performing chunking strategy.
+3:14
+And, as language model costs decrease,
+3:18
+LLM based chunking is becoming even more economically viable.
+3:23
+A final improvement to any chunking strategy
+3:25
+is to use a language model to add context to every single chunk.
+3:30
+For example, you can ask the language model to create chunks from a document,
+3:34
+but also add summary text to the chunk explaining its context in the broader document.
+3:40
+An author might conclude a blog post by thanking a list of supporters and contributors.
+3:46
+That means there will be a chunk near the end of the blog post
+3:50
+that's just a long list of names, making that chunk difficult to interpret on its own.
+3:55
+The LLM could add text to the chunk explaining its context in the broader blog post.
+4:01
+This added text is available both when the chunk is vectorized,
+4:05
+helping drive greater search relevancy,
+4:07
+and when the chunk is retrieved,
+4:09
+eventually helping the LLM understand the overall meaning of the chunk.
+4:14
+Context-aware chunking requires computationally expensive preprocessing,
+4:19
+since an LLM needs to go through your entire knowledge base one document
+4:24
+and chunk at a time to add context.
+4:27
+The benefits, however, are more relevant searches
+4:30
+and essentially no impact on search speed.
+4:34
+Most RAG systems will implement some kind of chunking.
+4:38
+How sophisticated an approach to use, however, will depend on context.
+4:42
+Fixed-size or recursive character splitting are often good starting points
+4:46
+when prototyping a system and are fine default approaches.
+4:51
+Semantic and LLM-based chunking can lead to higher performance,
+4:55
+but they're computationally expensive and can be difficult to tune, maintain, or audit.
+5:01
+It makes more sense to experiment with a small subset of your data
+5:05
+and see if these more advanced techniques are actually leading to improvements in search relevance.
+5:11
+Since context-aware chunking can be applied on top of any chunking strategy
+5:15
+and can improve both search relevance and subsequent generation,
+5:19
+it can often be a good first improvement to explore beyond fixed-width techniques.
+5:24
+As a designer of RAG systems,
+5:27
+the goal isn't to implement the most cutting-edge chunking technique in the market.
+5:32
+It's to understand what options are available, how suitable they are to your data,
+5:37
+and whether the costs and benefits make it worth implementing in your system.
+5:42
+Hopefully, this quick survey of chunking techniques
+5:45
+gives you a strong foundation to make those decisions.

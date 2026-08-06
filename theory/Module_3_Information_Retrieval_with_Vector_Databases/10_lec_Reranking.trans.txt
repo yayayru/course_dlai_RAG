@@ -1,0 +1,62 @@
+0:00
+A nice way to get the best of both worlds in semantic search is to just use multiple search techniques together.
+0:06
+Reranking is a post-retrieval process in which the initial set of documents returned by a vector database
+0:14
+are re-ranked using high-performing but expensive models in order to ensure the absolute most relevant documents are returned.
+0:23
+Let's see how it works.
+0:25
+Reranking is all about improving the quality of your retrieval after a collection of documents or chunks has already been retrieved but before they're sent to the LLM.
+0:35
+Once the vector database returns results, re-ranking comes in and improves the retrieval quality by re-scoring and then re-ranking those retrieved documents using more capable models.
+0:47
+Since only a handful of documents need to be re-scored and re-ranked, it's possible to use high-performing but costly models that are infeasible to use when searching the entire knowledge base.
+0:59
+Let's look at an admittedly oversimplified example. If the prompt is, what is the capital of Canada?
+1:05
+Your vector database might retrieve documents that are semantically related but don't directly answer the question.
+1:12
+For example, the phrase Toronto is in Canada, the capital of France is Paris, or Canada is the maple syrup capital of the world are all somewhat semantically related to the prompt but don't ultimately answer the question.
+1:27
+This is where the re-ranker can come in to re-score and re-rank these results so that only the truly relevant documents are ultimately returned.
+1:37
+In systems that use a re-ranker, you'll usually over-fetch documents in your initial vector database retrieval.
+1:45
+For example, you might retrieve somewhere between 20 to 100 documents, or chunks, using a typical hybrid search approach.
+1:53
+The re-ranker will then be used to re-score these documents, which leads to a final ranking.
+2:00
+Ultimately, you'll still only return a subset of documents retrieved by the vector search, perhaps 5 to 10.
+2:07
+Thanks to the re-ranker, however, these re-ranked documents will be much more relevant than might have been the case if you just performed a simple hybrid search.
+2:17
+Typically, re-rankers have a cross-encoder architecture.
+2:21
+As you saw earlier, cross-encoders provide better results than the standard bi-encoder, but are significantly slower and infeasible to use with millions or billions of documents.
+2:33
+If a bi-encoder has already narrowed down the list of documents that need to be considered, however, suddenly the trade-off between quality and time makes a lot more sense.
+2:42
+A cross-encoder will add a little bit of latency to your overall system, even if only re-ranking 20 to 100 documents, as is typically the case.
+2:51
+This trade-off, however, is almost always worth it.
+2:55
+Increasingly, LLM-based re-ranking is also being used.
+3:00
+The idea is fairly similar to a cross-encoder, but instead of providing a prompt document pair to a cross-encoder for re-ranking, it's provided directly to an LLM.
+3:10
+LLMs specifically designed for this task are able to analyze the pair, assess their relevance, and respond with a numerical relevance score.
+3:19
+While promising, this approach is essentially as inefficient as a cross-encoder.
+3:25
+In both cases, scoring can't begin until the prompt is received, and scoring an individual document is still a relatively costly operation.
+3:35
+As a result, LLM-based scoring may be further refined, but it will remain a re-ranking technique that can only be used after a typical vector search has narrowed down the list of documents that need to be re-ranked.
+3:49
+While a RAG system doesn't strictly require the use of re-ranking, it is often quite easy to implement and yields much better performance.
+3:58
+For many vector databases, it can be as simple as adding a single line to your search query indicating you want a re-ranker to be used.
+4:06
+As a result, using a re-ranker is one of the first techniques you should explore adding to your RAG pipeline when trying to improve search relevance.
+4:14
+Typically, you can overfetch 15 to 25 documents, and then re-rank between them for a great relevance boost at the cost of a little added latency.

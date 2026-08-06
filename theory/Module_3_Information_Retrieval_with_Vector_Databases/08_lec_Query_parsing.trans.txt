@@ -1,0 +1,116 @@
+0:00
+An important step in a production RAG system is cleaning up user-submitted prompts.
+0:05
+RAG systems are often deployed in contexts where the end user expects to interact with an LLM in
+0:11
+a conversational manner, as though they're chatting with another person. As a result,
+0:17
+human-written LLM prompts make for bad search queries. Rather than feeding those prompts
+0:23
+directly to the vector database, the retriever can parse the prompt to identify its intent and
+0:30
+edit, rewrite, or entirely transform the prompt to optimize it for retrieval.
+0:36
+There's a variety of query parsing techniques used, so let's look at a few of them.
+0:41
+The simplest and by far most widely used solution to messy prompts is using an LLM to rewrite the
+0:49
+query before it's submitted to the retriever. For example, consider a RAG system built around
+0:54
+a knowledge base of medical information. You might set up an LLM as a query rewriter
+1:00
+with the following prompt. The following prompt was submitted by a user in order to query a database
+1:06
+of medical documents linking symptoms to diagnoses. Rewrite the prompt to optimize it for searching
+1:13
+the database by doing the following. Clarify ambiguous phrases, use medical terminology
+1:19
+where applicable, add synonyms that increase the odds of finding matching documents, remove
+1:25
+unnecessary or distracting information, and then you insert the user prompt. A patient might submit
+1:32
+the prompt, I was out walking my dog, a beautiful black lab named Poppy, when she raced away from me
+1:39
+and yanked on her leash hard while I was holding it. Three days later, my shoulder is still numb
+1:45
+and my fingers are all pins and needles. What's going on? This prompt clearly isn't optimized for
+1:51
+retrieval. Here's the rewritten prompt after it's passed through the query rewriter. Experience a
+1:58
+sudden forceful pull on the shoulder resulting in persistent shoulder numbness and finger numbness
+2:04
+for three days. What are the potential causes or diagnoses such as neuropathy or nerve impingement?
+2:11
+This new prompt removes unnecessary information, clarifies ambiguity, and even uses some medical
+2:18
+terminology that may increase the odds of finding a match in the knowledge base. While you can
+2:25
+and should iterate on the prompt you use for query rewriting, in general the benefits you gain from
+2:30
+it are substantial and easily justify the additional costs of the LLM call needed to clean
+2:36
+up each prompt. While basic query rewriting is usually the only query parsing technique you'll
+2:42
+need to consider, more advanced techniques do exist. For example, named entity recognition is a
+2:49
+technique for recognizing categories of information in the query like places, people, dates, fictional
+2:57
+characters, and so forth. This information can then be used to inform either the vector search
+3:03
+performed by the retriever or the metadata filtering done later in the process. An example here is for a
+3:10
+model called Gliner which is a general named entity recognition model. You can give it a piece
+3:16
+of text and then a list of types of entities you wish for it to identify like people or dates.
+3:24
+The model will analyze the query and return a labeled query with identifications of those
+3:29
+categories. In this particular example, I've provided some input text and told the Gliner
+3:35
+model to try and label any mentions of a person, books, locations, dates, actors, and characters.
+3:43
+In the response, you can see that it's labeled any time it sees these different entities.
+3:48
+This is a very efficient model and we can run this every time a query comes in,
+3:52
+including this step adds a little bit of added latency but the quality of the retrieval now can
+3:57
+be significantly improved as a result of this. Another advanced query parsing technique is
+4:03
+called hypothetical document embeddings or HIDE. This approach refines a search query by generating
+4:10
+a hypothetical document that would be the ideal result of the search process. For example, if
+4:17
+you're attempting to retrieve information on that earlier medical question, an LLM would be used to
+4:22
+generate a hypothetical document about shoulder and hand numbness resulting from a rapid pull.
+4:29
+Then that hypothetical document is embedded and its vector representation is what is actually
+4:35
+used to complete the search. The idea here is that you're helping the retriever understand
+4:42
+not just the intent of the prompt or question but what a high quality result would look like.
+4:48
+Normally, a retriever needs to match prompts to documents, so to some degree the retriever is
+4:53
+matching dissimilar types of text or apples to oranges. By generating a hypothetical document,
+4:59
+the retriever is now comparing more similar text, a hypothetical perfect document, and the documents
+5:06
+actually contained in the knowledge base. In practice, HIDE actually provides performance
+5:12
+improvements at the cost of some added latency in the search and some computational resources to
+5:18
+run the LLM that generates the hypothetical documents. In my experience, having some kind
+5:24
+of query parsing is a key piece of your RAG system. In almost every case, basic query rewriting,
+5:32
+just using a nicely prompted LLM to do basic touch-ups on user submitted prompts,
+5:38
+is the right approach. More advanced techniques like using Named Entity Recognition,
+5:43
+HIDE, and others may provide additional benefits, but they can be more complex to run and won't
+5:50
+necessarily yield better results. Experiment with these advanced techniques and let the
+5:55
+results decide how your project needs to evolve.

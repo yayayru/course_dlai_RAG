@@ -1,0 +1,154 @@
+0:00
+The semantic search techniques you've seen so far all use a vanilla architecture. Each document and
+0:06
+prompt are assigned a single vector, which are compared to find documents or chunks that are
+0:11
+similar to the prompt. While this approach yields great results, even higher quality retrieval is
+0:18
+possible with more sophisticated architectures. Let's look at two of those, the cross encoder
+0:24
+and Colbert, and consider their pros and cons. The architecture you've seen throughout this
+0:30
+course to power semantic search is called a bi-encoder. The documents are each assigned
+0:36
+a semantic vector by an embedding model. When a prompt is received, it too is embedded to a vector.
+0:43
+Then, an approximate nearest neighbors algorithm is used by a vector database to rapidly identify
+0:50
+documents whose vectors are close to the prompt vector. The term bi-encoder refers to the fact
+0:57
+that the documents and prompt are embedded separately. This is important because it means
+1:04
+all the documents can be embedded ahead of time, and only the prompt itself needs to be embedded
+1:10
+after it's received, significantly speeding up search. If you're willing to give up some of the
+1:15
+speed, however, you can get even higher quality search results. Let's start with the cross encoder,
+1:22
+which can provide significantly higher quality document rankings than bi-encoders.
+1:28
+To score a document, a cross encoder concatenates the document with the prompt, and then passes the
+1:36
+combined text into what is essentially a specialized embedding model. Since both the prompt and document
+1:43
+are in the input, this allows the model to understand deep contextual interactions between
+1:48
+the prompt and document text that a bi-encoder might miss. The cross encoder is designed to then
+1:55
+directly output a relevancy score, usually a number between 0 and 1. You can think of this score as the
+2:03
+probability of a positive match between the prompt and the document. Here's a cross encoder in action.
+2:10
+Say you have three documents in the knowledge base, and you receive the prompt,
+2:14
+great places to eat in New York. The cross encoder concatenates the prompt to the front of each
+2:21
+document. Each prompt document pair is then passed through the cross encoder, which outputs a
+2:27
+probability of a match between the prompt and the document. If this is a well-trained cross encoder,
+2:34
+you'd expect the first document to score pretty well, say 0.7 or 70 percent, since the document is
+2:41
+fairly relevant to the prompt. You then repeat this process for each document, concatenating the
+2:46
+prompt to the front, passing the prompt document pair through the cross encoder architecture,
+2:53
+and generating a score. A cross encoder will almost always provide better search results
+2:59
+when compared to a bi-encoder, as measured by common metrics like search relevance.
+3:05
+The main issue with cross encoders is that they scale terribly. Your knowledge base can easily
+3:11
+have millions or potentially billions of documents, meaning that for every single prompt, you'd need to
+3:17
+run billions of document prompt pairs through the cross encoder to generate each document's
+3:24
+relevancy score. You also can't do any pre-processing to speed things up, since cross encoders run on a
+3:31
+prompt document pair, and you won't have the prompt until a user submits it. Cross encoders are too
+3:38
+inefficient to use as a default search technique, but the quality of the results makes them a great
+3:44
+tool for improving the results of other search techniques, something you'll explore a bit later
+3:50
+in this course. Some techniques try to split the difference between the speed of bi-encoders and the
+3:57
+quality of cross encoders. So let's look at one final architecture gaining popularity known as
+4:03
+COBEAR. COBEAR stands for contextualized late interaction over BERT. The idea of COBEAR is that
+4:12
+you still generate document vectors ahead of time, like in a bi-encoder, but try to capture deeper
+4:19
+interactions between the text of the prompt and each document, like cross encoder. To start, each
+4:26
+document in the knowledge base is embedded, but instead of generating one semantic vector for the
+4:31
+entire document, you generate one semantic vector for each token in the document. A document with
+4:38
+a thousand tokens therefore needs to be converted to a thousand dense vectors. When a prompt comes in,
+4:45
+it's embedded in the same way, resulting in one dense vector for each token in the prompt. Now, the
+4:53
+idea behind scoring in COBEAR is that each token in the prompt tries to find its most similar token
+5:01
+in the document. Let's look at an example to see how that works. Let's use the same four documents
+5:07
+and prompt from before, Great Places to Eat in New York, and see how the first document is scored.
+5:14
+First, the algorithm finds the vector distance, or in other words, a similarity score between each
+5:20
+pair of tokens from the document and the prompt. If the prompt has 10 tokens and the document has
+5:26
+100, the result is a grid of a thousand pairs of similarity scores. This creates a grid of how
+5:33
+relevant each document token is to a prompt token. For example, the tokens New and York from the
+5:40
+prompt would match well with New York and City from the document, while Eat would match favorably
+5:48
+with Cuisine. Each prompt token will have a document token with which it has the highest
+5:54
+relevancy score. These maximum scores are summed up to get one relevancy score for the overall
+6:01
+document. This is known as the max sim score. Repeating this process for every document in the
+6:09
+knowledge base allows all documents to be scored and the most relevant documents to be retrieved.
+6:15
+Colbert provides both the scalability of a bi-encoder and much of the rich interaction
+6:21
+between prompts and documents found in a cross-encoder. While the computation required
+6:27
+to score each document prompt pair is more computationally taxing than in a bi-encoder,
+6:34
+it's still reasonably fast and possible to use in contexts where real-time or close to real-time
+6:41
+search is necessary. The biggest drawback of the Colbert architecture is that the number of vectors
+6:48
+you need to store increases proportionally to the tokens in both prompts and documents.
+6:54
+If you have a 2,000 token document, you would need to store 2,000 vectors. In a bi-encoder,
+7:02
+you'd only need to store a single dense vector. The standard bi-encoder model provides reasonably
+7:08
+good quality, great speed, and requires minimal vector storage space. This set of attributes
+7:15
+make it the default architecture for semantic search. Cross-encoders provide the gold standard
+7:20
+when it comes to search quality, but they're so slow that it's infeasible to use them as a default
+7:26
+search technique. Colbert provides nearly the quality of a cross-encoder, but at speeds much
+7:33
+closer to a bi-encoder. And the cost of this trade-off is that it requires storing orders
+7:39
+of magnitude more vector data. Increasingly, vector databases are providing support for Colbert
+7:45
+or similar approaches, especially for projects that require precision and deep contextual
+7:51
+understanding. For example, in the legal or medical fields, the trade-off of significantly
+7:57
+increased vector storage memory footprint for search quality may be worth it. Cross-encoders
+8:03
+are too computationally expensive to be used on their own for search, but luckily, they don't
+8:09
+need to be. Join me in the next video and let's see how cross-encoders are integrated into production
+8:14
+retrieval systems despite their significant inefficiencies.
