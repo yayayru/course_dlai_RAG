@@ -1,0 +1,192 @@
+0:00
+Let's talk about securing your RAG application.
+0:03
+Cybersecurity is a deep and constantly evolving field,
+0:07
+so it'd be impossible to address every possible security risk.
+0:12
+Instead, let's have a look at some of the security challenges and opportunities
+0:17
+that are unique to a RAG system.
+0:20
+The main focus here will be on securing the information in your knowledge base.
+0:24
+A common reason you choose to build a RAG system in the first place
+0:27
+is because you have private or proprietary information.
+0:31
+That information has intentionally been kept off the open web,
+0:34
+where an LLM is much more likely to have been trained on it.
+0:38
+Even after you've built a RAG system, you likely still want to keep that data private.
+0:42
+There's a few ways the information in your knowledge base could be leaked.
+0:45
+One is that a user could just request it directly from the prompt they submit.
+0:50
+A well-worded prompt could convince an LLM
+0:53
+to directly quote information in the retrieved chunks from your knowledge base.
+0:57
+Even with safeguards in place,
+0:59
+it's a reasonable assumption that users of your application
+1:02
+can at least indirectly access the contents of your knowledge base.
+1:06
+There's a couple of straightforward solutions here.
+1:08
+One is authenticating users in a manner appropriate
+1:11
+to the information they're allowed to access.
+1:14
+For example, if your knowledge base contains private company data,
+1:17
+ensuring only logged-in employees can prompt your RAG system is a good start.
+1:22
+A second important approach is to ensure that data is split across multiple tenants
+1:27
+based on role-based access or RBAC privileges.
+1:30
+In other words, if a user prompt leads to a retrieval from a vector database,
+1:35
+the user should theoretically only have access to documents
+1:38
+based on their role and access levels.
+1:41
+While in theory, you could keep all documents in a single tenant
+1:44
+and use metadata filters to determine which documents a user should have access to,
+1:49
+in practice, this technique is too prone to failure.
+1:53
+Metadata filtering is best used for personalization but not security.
+1:57
+For security, having multiple separately stored tenants is a much more reliable approach.
+2:03
+Another way knowledge base data could theoretically leak
+2:06
+is if prompts are being sent to an LLM provider to generate completions.
+2:11
+The augmented prompt you're sending will contain documents
+2:13
+or chunks of retrieved text from your knowledge base,
+2:17
+and at that point, you lose control of security.
+2:20
+Depending on the security level of the information in your knowledge base,
+2:23
+this may not be a tolerable risk.
+2:26
+Luckily in these instances,
+2:27
+you can choose to run a RAG system entirely locally on-premises.
+2:31
+This means hosting the LLM and the vector database on your own hardware.
+2:36
+While this may introduce additional complexity and cost overhead to your project,
+2:40
+you also now have control of the contents of your knowledge base
+2:43
+across the entire RAG pipeline.
+2:45
+If you both want to deploy a RAG system
+2:47
+and need to ensure a high level of security for your knowledge base,
+2:51
+this step of moving the entire system on-prem might be worth it.
+2:55
+Yet another way your knowledge base might be compromised
+2:59
+is that it's simply directly hacked,
+3:01
+just as is possible with any traditional database.
+3:04
+One way traditional databases defend against unauthorized access
+3:07
+is by encrypting their content.
+3:09
+This means that even if a hacker gets access to the database,
+3:12
+they can't readily access the encrypted information.
+3:15
+Vector databases present some unique challenges for this attack vector.
+3:19
+In order for an ANN algorithm to operate,
+3:22
+at least the dense vector representations of your documents
+3:25
+need to be stored in memory in a decrypted manner.
+3:28
+The text of the chunks themselves
+3:29
+could be stored and retrieved in an encrypted manner
+3:33
+and then later decrypted to build the augmented prompt.
+3:36
+Some vector database providers now provide this service,
+3:39
+or you could choose to encrypt and decrypt chunks yourself.
+3:42
+This adds additional complexity and possibly some latency to your system,
+3:46
+but offers an additional level of security.
+3:49
+Those dense vectors that need to remain unencrypted
+3:52
+unfortunately can still pose some security risks.
+3:55
+Recent research has shown the possibility of
+3:58
+reconstructing the original text from its dense vector representations.
+4:02
+In other words, if you encrypt your chunks,
+4:05
+it's possible a hacker could still reconstruct them
+4:08
+from the unencrypted dense vectors.
+4:11
+Some techniques are currently being explored to address this security concern,
+4:14
+like adding noise to dense vectors,
+4:16
+applying transformations to them,
+4:18
+or reducing dimensionality in a way that preserves distances
+4:22
+while obscuring semantic meaning.
+4:24
+Each of these techniques adds complexity to your retriever, however,
+4:27
+and tends to reduce system performance.
+4:30
+The somewhat unique potential security vulnerability of vector databases
+4:34
+is a subject of ongoing research,
+4:36
+but is worth being aware of.
+4:38
+This attack requires a hacker to both get direct access to your database
+4:42
+and use experimental techniques to reconstruct text from dense vectors,
+4:47
+but is a possible security concern.
+4:49
+This is just a quick look at security for your RAG system,
+4:54
+but hopefully helps highlight the concerns that are unique to RAG.
+4:58
+The primary takeaway here should be to remember
+5:01
+that your knowledge base likely contains some private information,
+5:05
+and that you should understand and control
+5:08
+how that information is accessed.
+5:10
+Pairing the techniques in this video
+5:12
+with a broader set of cybersecurity precautions
+5:15
+should help improve the security of your production RAG system.

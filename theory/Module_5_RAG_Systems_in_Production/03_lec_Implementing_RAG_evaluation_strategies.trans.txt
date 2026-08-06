@@ -1,0 +1,144 @@
+0:00
+A good first step to handling production challenges is building a robust observability system.
+0:05
+To start, let's look at the different components it should include.
+0:09
+An observability platform needs to track a few different kinds of information.
+0:14
+First, it should track common software performance metrics like latency, throughput, memory,
+0:21
+and compute usage. As with almost any production software system, you'll want to know how many
+0:27
+requests your system is handling, how long it takes, and how many resources it's consuming.
+0:34
+Next, you'll need to track a variety of quality metrics. Quality here could mean everything from
+0:40
+user satisfaction with the final replies they receive to the recall of your retriever. Beyond
+0:47
+knowing how quickly or efficiently your system is operating, you'll want to know if the final
+0:52
+results meet the quality standards you've set. It also matters how this information is collected
+0:59
+and reported. Your system should capture aggregate statistics over time to help you track high-level
+1:05
+trends in performance and quickly identify regressions. Separately, the system should record
+1:12
+detailed logs. These will allow you to trace the journeys of individual prompts through your RAG
+1:18
+pipeline, particularly useful when you're trying to understand the source of poorly performing
+1:23
+responses. Finally, your evaluation system should ideally enable experimentation. If you're
+1:29
+considering switching to a new language model, adjusting a system prompt, or tweaking the settings
+1:36
+on your retriever, you want to either run customized experiments in a secure environment
+1:42
+or A-B test changes with users in production. The ability to monitor the impact on performance
+1:49
+and quality metrics is what should ultimately help you decide if you want to move these experiments
+1:55
+into your production system. With that high-level structure in mind, let's look at the specific
+2:01
+metrics you'll want to track. A good framework for thinking through all these is scope and evaluator
+2:07
+type. Scope here means whether an evaluation is targeting a component of your RAG system
+2:14
+or the overall system. Evaluator type, meanwhile, asks whether the eval is code-based, uses LLM as a
+2:23
+judge, or relies on human feedback. You can think of these two dimensions forming a grid with the
+2:30
+evals you choose living in one of the resulting squares. Let's explore each dimension and then
+2:37
+look at where some common evals fall within that grid. Let's start with eval scope. System-level
+2:43
+evals are usually for summarizing overall system performance or giving a high-level view of how
+2:50
+things are going. Component-level evals, meanwhile, help you debug the source of individual issues.
+2:57
+For example, you might track the latency on your overall system and find that it's too high. In
+3:03
+order to track down the source of that issue, however, you need component-level evals to track
+3:08
+whether the retriever, your LLM, or another component entirely is ultimately causing the
+3:14
+problem. Evaluator type focuses on how the evaluation is generated. Code-based evals are the cheapest,
+3:21
+simplest, and most straightforward to implement. This could be everything from just recording the
+3:26
+number of prompts your system processes a second to running unit tests to ensure your LLM is
+3:32
+outputting valid JSON. What matters here is that these evals can be run automatically, are
+3:39
+deterministic, and are nearly free to run. On the other hand of the spectrum is human feedback and
+3:45
+evaluation. One common example is users of your application marking responses with a thumbs up
+3:51
+or thumbs down. Even if it doesn't give you a lot of detailed information, the fact that more users
+3:57
+mark your responses with thumbs down is a useful indication that you have a problem to fix. You
+4:03
+might give users a text box to give more detailed feedback as well. Other evals can be run
+4:08
+automatically but depend on human input at the outset. For example, you can have humans pre-compile
+4:15
+data sets of the prompt and the relevant documents that should be retrieved. Once that data set is
+4:20
+compiled, you can rapidly calculate common metrics like precision and recall. But it's worth remembering
+4:27
+that at some point a human needed to compile that initial test data set. In general, human feedback
+4:34
+and annotation is a more costly approach but it captures the information that code-based evals
+4:41
+will miss. LLM as a judge tries to split the difference by using a language model to grade
+4:48
+different components of your system's performance. For example, an LLM might determine whether the
+4:54
+documents retrieved by a retriever are actually relevant to the user's prompt. LLM as a judge is
+5:00
+more flexible than code-based evals and cheaper than human feedback. LLM as a judge still needs
+5:07
+to be carefully tuned however. Models can have biases and favor responses generated by a model
+5:14
+from their own family. They also need clear rubrics and typically perform best with discrete standards
+5:21
+like relevant or irrelevant rather than a grading on a scale from 0 to 100. Let's see how all of
+5:28
+these different evaluation concepts can be put together into a simple but comprehensive set of
+5:33
+metrics you could start out collecting. A good idea to start is to collect both software performance
+5:38
+and quality metrics for each major component and then the overall system. System performance
+5:45
+metrics like latency, throughput, memory usage, or tokens generated per second are code-based evals
+5:53
+making them cheap and easy to collect. You can readily capture this data at both the component
+5:59
+and system-wide level. For quality metrics, you typically will need to rely on techniques that use
+6:05
+human annotation or LLM as a judge. For system-wide quality metrics, you can allow users to give you
+6:13
+thumbs up or thumbs down on generated responses, giving you feedback on overall response quality.
+6:19
+For evaluating a retriever, you could spend the time to compile a human annotated test data set
+6:24
+of prompt and expected retrieved documents, allowing you to calculate common metrics like
+6:30
+recall and precision. To evaluate LLM quality, you'll typically use LLM-based evals like those
+6:36
+found in the Ragas library to assess things like response relevancy, the quality of citations,
+6:42
+or how well the LLM is ignoring irrelevant retrieved information. An approach like this
+6:48
+gives you visibility into both the performance and quality of your overall system and individual
+6:55
+components. It also captures a nice balance of cheap evals like latency and more expensive metrics
+7:02
+that rely on human annotation or LLM calls. From there, you can decide which additional areas you'd
+7:08
+like to look more closely at. That's a quick high-level look at what components a RAG observability
+7:14
+system should include and trade-offs that go into designing it. Join me in the next video
+7:20
+and let's take a closer look at some of the considerations that arise
+7:24
+when you actually go to implement this system.

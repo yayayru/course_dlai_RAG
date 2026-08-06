@@ -1,0 +1,98 @@
+0:00
+Another important balancing act that you have to consider for a RAG application in production
+0:04
+is the time any one query takes, or latency, versus the response quality. Simply adding a
+0:11
+retriever to your system adds latency, and as you add more components to increase response quality,
+0:18
+like re-ranking or building more complex agentic systems, latency can increase. So let's look more
+0:25
+closely at this trade-off and how you can find the right balance for your system.
+0:30
+How important latency is to your system depends heavily on the context in which it'll be used.
+0:36
+Customers browsing an e-commerce site have notoriously little patience for slow response
+0:41
+times, so you'd probably optimize your item recommendation service to have very low latency,
+0:46
+possibly at the cost of not recommending the perfect item from your catalog. A RAG system
+0:52
+designed to help doctors diagnose rare diseases, on the other hand, would likely be optimized for
+0:56
+response quality, even if that means responses take much longer to produce. When tackling latency,
+1:03
+an easy guideline to remember is that almost all of it is the result of running a transformer.
+1:09
+As a result, the biggest culprit will be your large language model calls. While retrieval does
+1:15
+add a little bit of latency, in particular, some transformer-based re-ranking techniques,
+1:20
+modern databases, and in particular vector databases, are very fast and scale well.
+1:25
+If you want to cut down on latency, the best place to start is your core language model.
+1:31
+One effective approach here is to just use a smaller language model. Smaller LLMs, or quantized
+1:37
+models, will always run faster on the same hardware, assuming the same memory is available.
+1:42
+Another approach is to use a smaller router LLM, whose job it is to look at the prompt and decide
+1:48
+whether a smaller or larger LLM is the right tool for the job. If a query requires complex reasoning,
+1:55
+it can be routed to a larger and more powerful model. Meanwhile, simple queries can be routed
+2:01
+to smaller and faster models. This helps keep latency down for simpler prompts, while allowing
+2:07
+latency to increase only for the more complex prompts that require it. For systems that often
+2:13
+receive very similar prompts, caching can also help with latency. To do this, you maintain a cache
+2:19
+of frequently submitted prompts and their responses. When new prompt is received, you rapidly compute
+2:25
+similarity scores between the new prompt and those in the cache. If you find a close enough match,
+2:30
+you can immediately return the cached response, entirely skipping the relatively slow generation
+2:35
+process. With careful tuning, this approach can greatly improve system latency for many prompts.
+2:41
+If you want to still make use of caching, but somewhat personalized responses, you can still
+2:46
+retrieve cached responses, but then feed the cached response and user prompt to a smaller and faster
+2:53
+LLM to make small adjustments to the response to make it more relevant to the prompt. Once you've
+2:58
+optimized that latency of your core LLM, the next step is to address other transformer-based
+3:03
+components in your pipeline. This might be a query rewriter, a re-ranker, or a router LLM,
+3:10
+and so forth. Each of these components serves an important role, but they also increase latency.
+3:16
+My advice here is to measure both the latency each component is adding to your system,
+3:21
+and the incremental response quality they provide. You might realize you're not getting
+3:25
+much benefit from your query rewriter, for example, and opt to remove that component.
+3:30
+While generation is typically the biggest source of latency, there are still ways to eliminate
+3:35
+latency caused by your retriever. One approach is to use embeddings that are binary quantized
+3:40
+in your vector database. This simplifies the underlying vector distance calculations,
+3:45
+and helps speed up retrieval. Sharding larger databases into separate instances,
+3:51
+especially once they get quite large, can also help reduce search latency. These are common
+3:56
+approaches to improve latency in any database, and most vector database providers include tools
+4:01
+to help you implement them. There's almost always some latency versus quality trade-off in your
+4:07
+RAG system. To start, you should understand how much latency your system can tolerate.
+4:13
+If you need to reduce latency, start by addressing your core LLM. Then, move to the other transformer
+4:20
+or LLM-based features. If latency is still an issue, take on other components of your pipeline.
+4:27
+With a robust observability system in place, you should be able to see the impact of your changes
+4:33
+and iteratively reduce latency to the levels your project needs.

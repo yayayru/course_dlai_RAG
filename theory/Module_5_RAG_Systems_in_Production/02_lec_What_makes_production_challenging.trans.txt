@@ -1,0 +1,68 @@
+0:00
+Production environments put entirely new strains on your RAG system, and navigating those challenges
+0:05
+requires a different set of skills than is required when prototyping. To start this module,
+0:11
+let's just review what new challenges your system will face once it's being used by actual customers.
+0:17
+The first set of challenges you'll encounter in production simply arise from scaling up more
+0:23
+traffic. More users constrain the throughput of your system, whether it's how many requests
+0:29
+they can handle at once, or the latency between receiving a request and returning a reply. More
+0:35
+requests also means more memory and compute usage, which eventually means higher costs. Keeping up
+0:42
+raw system performance at scale can be challenging. A second category of challenges comes from the
+0:48
+variety and unpredictability of prompts your system will receive once it's in the hands of
+0:53
+your users. Even with rigorous testing, it's difficult to predict every type of request your
+0:58
+RAG system will receive. You may find your system struggling on some of these new requests, even if
+1:04
+it performed well on pre-launch testing. Another challenge in production is just that real world
+1:09
+data is often a mess. It's not uncommon for data to be fragmented, poorly formatted, missing metadata,
+1:17
+and so forth. A lot of data also isn't even in a text format at all, but instead is found in images,
+1:24
+PDFs, and slide decks. If you want to include this data in your knowledge base, you'll need a way to
+1:30
+access it. Security and privacy issues are also a concern. A lot of RAG systems are deployed expressly
+1:37
+because the data in your knowledge base is private or proprietary. Ensuring the data remains private
+1:43
+while allowing authorized users to access it when using your RAG system is important functionality.
+1:49
+On top of all these challenges, the biggest issue with production is that mistakes can have real
+1:55
+business impact, whether financial or reputational. When Google first launched its AI Search Summaries
+2:03
+feature, it responded to some prompt by advising users eat rocks for the nutritional benefits they
+2:10
+provided. When Google investigated the cause of this issue, it turned out that a user had asked,
+2:16
+how many rocks should I eat? An admittedly silly and hard to predict question. When the system
+2:23
+retrieved information on the question, many of the articles or forum conversations it found were
+2:28
+comical, but the system failed to recognize that fact. Google subsequently fixed this issue and
+2:35
+even wrote a blog post explaining the source of the bug. But they're far from the only company to
+2:41
+run into trouble after launching an LLM-based product. Airline chatbots have promised well-meaning
+2:47
+customers discounts that don't actually exist. Malicious actors will try to trick your RAG system
+2:53
+to sell them your product for free or reveal secret information. Production is simply a
+2:59
+challenging environment for your RAG system to operate in. And so having systems in place to
+3:04
+anticipate problems before they happen, track them down when they do, and verify that changes you
+3:11
+make lead to real improvements is critical. There's a variety of techniques you can use to address
+3:17
+all of these production challenges. Join me in the next video to see the first of these,
+3:22
+building a robust observability system.

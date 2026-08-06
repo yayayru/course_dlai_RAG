@@ -1,0 +1,134 @@
+0:00
+Throughout this course, you've seen RAG systems built on top of text data, but these days,
+0:05
+information is stored in a huge variety of formats. Slide decks, PDFs, or images also
+0:11
+include valuable information that you'd ideally like to include in your knowledge base,
+0:15
+and make available to your LLM. Thanks to cutting-edge developments on multimodal models,
+0:21
+it's increasingly possible to build RAG systems that handle a wide variety of data types.
+0:27
+Let's have a look at how they work. A multimodal model is one that is designed to handle multiple
+0:32
+data types. The most common pairing is text and images, but audio and video are also possible.
+0:39
+A typical multimodal RAG system is one that can accept both text and images as prompts, stores
+0:46
+both text and image files in the knowledge base, and ultimately generates text responses.
+0:52
+In order to power these new capabilities, both the retriever and the LLM need to be updated to
+0:58
+have multimodal capabilities. Let's look at how each component needs to be changed.
+1:04
+The first component that needs to be made multimodal is the embedding model used by the
+1:08
+vector database. A multimodal embedding model is one that can embed multiple formats of data into
+1:14
+the same vector space. If you use this kind of model to embed both the words dog and puppy, you
+1:20
+would expect their vectors to be fairly close to one another, as with a text-only embedding model.
+1:25
+If you give the same model an image of a dog, however, that image's vector would also end up
+1:32
+in a nearby part of the vector space. If you embedded an image of a tree and the word tree,
+1:38
+those two objects would also be embedded close to one another, but in a different part of the
+1:42
+vector space. In other words, multimodal embedding models work just like text embedding models,
+1:48
+placing items with similar meanings closer together. Thanks to their design, however,
+1:53
+they can perform this same function with multiple types or modalities of data. Once you have a
+1:59
+multimodal embedding model, vector-based retrieval works in a very familiar way.
+2:04
+Both images and text from your knowledge base can be embedded into the same vector space.
+2:10
+When a prompt is received, that same multimodal model is used to embed the prompt, whether it's
+2:15
+an image or text. Then, vector search is completed as normal, returning the images or documents
+2:22
+whose vectors are closest to the prompt vector. The text and images retrieved from the knowledge
+2:26
+base can then be added to the augmented prompt as normal and sent along to the language model.
+2:32
+In order for a language model to process both text and images, you'll need to use a language
+2:38
+vision model. This kind of model works very similarly to a text-only LLM, but has the
+2:44
+ability to process images that have also been tokenized. In order to do that, the images must
+2:49
+be tokenized. A typical process for tokenizing an image is to break the image into separate patches,
+2:55
+which are each represented as a token. Depending on their resolution, images might be represented
+3:01
+somewhere on the order of 100 tokens on the lower end to approaching a thousand tokens on the higher
+3:06
+end. What matters here, though, isn't so much how many tokens are used, but rather the fact that
+3:12
+these models are designed so that both images and text can be converted into a token sequence,
+3:19
+just as with text-only models. Language vision models then work very similarly to standard LLMs,
+3:25
+passing this multimodal token sequence through a transformer that can develop a nuanced
+3:30
+understanding of both the text and images in the prompt and their relationships. The model then
+3:36
+typically will produce text tokens as output, responding to the initial prompt. Once you have
+3:41
+a multimodal embedding model and a language vision model, upgrading your RAG system to store both
+3:46
+images and text in the knowledge base is pretty straightforward. The high-level architecture
+3:51
+is essentially identical, but it can now handle both text and images. The nice thing about updating
+3:59
+a RAG system to handle images is that this enables your system to ingest many common file formats
+4:04
+that are readily converted to images. Slides and PDFs, for example, are easily treated as image files.
+4:11
+A challenge with these formats, however, is just how information-dense slides and PDFs can be.
+4:17
+A single page or slide can contain text, charts, captions, and images. A single vector would
+4:23
+struggle to capture all the nuance on one page of a PDF. In other words, you need to chunk your images
+4:29
+just like you would chunk your text. Initially, this was done with fairly sophisticated techniques
+4:34
+to detect different portions of a PDF page. These algorithms attempt to determine which
+4:39
+piece of the page is a chart, which is an image, which is text, and so forth. In practice, however,
+4:45
+these techniques are still pretty error-prone and finicky. A newer approach called PDF RAG
+4:51
+just splits every page into a grid of squares without worrying about whether those boundaries
+4:57
+fall at sensible locations. Each square is then embedded into a dense vector by a multimodal
+5:02
+embedding model. This means your page is represented by, say, a thousand vectors instead
+5:09
+of one. Vector search then works very similarly to Colbert. Each word in the prompt looks for its
+5:16
+best matching square on a given page. These scores are then added up to score the overall
+5:21
+page of the document. This approach is very flexible since any image can be split up into
+5:26
+a grid of squares. In practice, it also performs well at retrieval tasks. The fact that this
+5:31
+approach is so flexible and performs well means it's a promising direction for powering
+5:36
+multimodal retrieval. Its main downside is that it requires your vector database to store a massive
+5:42
+number of vectors. Nevertheless, vector database providers are increasingly implementing tools to
+5:47
+enable this kind of multimodal retrieval, and you should expect it to continue to get easier to build
+5:52
+RAG systems around multimodal knowledge bases. Multimodal RAG is still a cutting-edge technology
+5:58
+with rapid and active developments. Most LLM providers offer a language vision model,
+6:05
+while multimodal embedding models are relatively more experimental offerings.
+6:10
+That said, as you look to push the frontier of what your RAG system can do,
+6:15
+expect to see exciting and ongoing progress in the world of multimodal RAG.

@@ -1,0 +1,114 @@
+0:00
+Now it's time to talk about every engineer's favorite topic, the budget.
+0:04
+When you're designing your first RAG system, you'll probably focus on exploring what's possible
+0:10
+and getting a working prototype. As you start scaling your system to hundreds,
+0:15
+thousands, or even millions of requests, cost considerations become increasingly important.
+0:21
+So let's have a look at what strategies are available to you to limit a system's costs
+0:26
+while still providing high quality responses. The two largest costs in a typical RAG application
+0:33
+will be your vector database and your large language models. Let's start by looking at
+0:38
+some ways to manage LLM costs. One way to reduce LLM costs is to experiment with using smaller
+0:44
+models. Whether it's the core LLM responsible for generating a final response or router LLMs in an
+0:51
+agentic system, you might be able to achieve similar overall quality with smaller and therefore
+0:56
+cheaper models. Models can be smaller either because they contain fewer parameters from the
+1:01
+outset or because the values of their parameters have been quantized to a lower precision format
+1:07
+like 8-bit. In either case, you'll often be pleasantly surprised at how well smaller models
+1:13
+perform, especially if your LLM will be performing a limited number of tasks. Fine-tuning a small
+1:18
+model can lead to good results at a low cost. A second straightforward approach is to experiment
+1:24
+with ways to limit the number of input and output tokens. RAG prompts can rapidly grow in size,
+1:31
+especially if you retrieve many lengthy chunks for each prompt. Experiment with retrieving fewer
+1:36
+documents or in other words reducing top k. Many LLMs can be long-winded and remember you pay for
+1:43
+every token they generate. Updating system prompts to encourage succinct responses or even setting a
+1:49
+firm token limit is another straightforward way to reduce costs. Whether you're reducing model size
+1:55
+or prompt length, having a robust observability pipeline in place will allow you to assess the
+1:59
+impacts of these changes and decide if the trade-off between cost savings and response
+2:04
+quality reduction are actually worth it. Another possible approach is to host LLMs on dedicated
+2:10
+hardware. Cloud LLM providers like Together AI, AWS, and Google offer convenient inference endpoints
+2:17
+and they often make sense to use when you're building a prototype. If your project is scaled
+2:22
+to thousands or millions of requests however, you might want to save money by running models on
+2:27
+dedicated hardware rented from those same companies. The additional benefit of dedicated endpoints is
+2:33
+better reliability since that hardware is only serving your user traffic and nothing else.
+2:38
+When using dedicated hardware to host models, you'll pay per hour for the GPUs your model requires.
+2:44
+At scale however, the cost savings by paying hourly versus paying per token can be very significant.
+2:50
+When looking to save money on your vector database, it's important to know that most databases offer
+2:55
+you multiple types of memory. Typically there are three kinds of memory to consider here. RAM,
+3:01
+disk memory, and cloud object storage. RAM is the fastest but most expensive. Cloud object storage
+3:09
+is the slowest but cheapest and disk memory sits somewhere in between. RAM is often several times
+3:15
+more expensive per gigabyte than disk memory which is itself several times more expensive than cloud
+3:21
+storage. If you want to save money then you want to make sure you're only paying to keep information
+3:26
+in fast and expensive storage if it'll actually benefit your system's performance. The HNSW index
+3:33
+for example should be kept in RAM to ensure vector search runs as rapidly as possible.
+3:38
+Your documents contents however probably don't need to be stored in RAM. You might then decide
+3:44
+to put your most commonly accessed documents in disk memory and your rarely accessed objects in
+3:49
+cloud object storage. Many vector databases include features that help you monitor this trade-off and
+3:55
+can even help dynamically move data into different kinds of storage based on your application's needs.
+4:02
+A typical example of this approach is multi-tenancy which means dividing all the documents
+4:07
+in your vector database by the user or organization they belong to. For example you might have 1
+4:13
+million documents in your vector database owned by a thousand different users. Each user should
+4:20
+only be able to access their own documents so each user will actually have their own HNSW index
+4:26
+for the documents associated with them. This system makes it easy to quickly load a tenant's
+4:31
+data into fast expensive memory only when necessary. For example you might wait until a customer
+4:38
+actually logs into your website to load their vectors into RAM or you could default to keeping
+4:44
+the data of your European tenants in slower storage during nighttime in Europe. In either case
+4:51
+you're just moving data in and out of expensive memory but organizing information by tenant makes
+4:57
+it easier to perform this task in an efficient way. The core idea of all of these optimizations
+5:03
+is that as an engineer you need to understand the source of your costs and ensure they're justified
+5:10
+by performance. For LLMs smaller models and shorter prompt is usually the way. For vector
+5:17
+databases storing smaller amounts of data in expensive storage and moving between RAM, disk
+5:23
+and object storage are the primary ways to save costs. Experimenting and monitoring the performance
+5:30
+impacts of these changes will allow you to decide if the cost savings they bring are worth it.
