@@ -28,7 +28,7 @@ images/     — иллюстрации
 
 ## Содержание
 
-### [Module 1 — RAG Overview](theory/Module_1_RAG_Overview)
+### [Module 1 — RAG Overview](theory/Module_1_RAG_Overview) · [слайды 📑](theory/Module_1_RAG_Overview/slides_M1.pdf)
 
 | # | Лекция / код |
 |---|---|
@@ -43,7 +43,7 @@ images/     — иллюстрации
 | 09 | [Введение в information retrieval](<theory/Module_1_RAG_Overview/09_lec_Introduction to information retrieval.notes.md>) |
 | 10 | [код (assignment): Introduction to RAG systems](theory/Module_1_RAG_Overview/10_code_assignment_Introduction_to_RAG_systems.md) |
 
-### [Module 2 — Information Retrieval and Search Foundations](theory/Module_2_Information_Retrieval_and_Search_Foundations)
+### [Module 2 — Information Retrieval and Search Foundations](theory/Module_2_Information_Retrieval_and_Search_Foundations) · [слайды 📑](theory/Module_2_Information_Retrieval_and_Search_Foundations/RAG_M2.pdf)
 
 | # | Лекция / код |
 |---|---|
@@ -59,7 +59,7 @@ images/     — иллюстрации
 | 10 | [код: Retrieval metrics](theory/Module_2_Information_Retrieval_and_Search_Foundations/10_code_Retrieval_metrics.md) |
 | 11 | [код (assignment): Implementing retriever functions in a RAG system](theory/Module_2_Information_Retrieval_and_Search_Foundations/11_code_assignment_Implementing_retriever_functions_in_a_RAG_system.md) |
 
-### [Module 3 — Information Retrieval with Vector Databases](theory/Module_3_Information_Retrieval_with_Vector_Databases)
+### [Module 3 — Information Retrieval with Vector Databases](theory/Module_3_Information_Retrieval_with_Vector_Databases) · [слайды 📑](theory/Module_3_Information_Retrieval_with_Vector_Databases/RAG_M3.pdf)
 
 | # | Лекция / код |
 |---|---|
@@ -75,7 +75,7 @@ images/     — иллюстрации
 | 10 | [Reranking](theory/Module_3_Information_Retrieval_with_Vector_Databases/10_lec_Reranking.notes.md) |
 | 11 | [код (assignment): Building RAG Systems with a Vector Database](theory/Module_3_Information_Retrieval_with_Vector_Databases/11_code_assignment_Building_RAG_Systems_with_a_Vector_Database.md) |
 
-### [Module 4 — LLMs and Text Generation](theory/Module_4_LLMs_and_Text_Generation)
+### [Module 4 — LLMs and Text Generation](theory/Module_4_LLMs_and_Text_Generation) · [слайды 📑](theory/Module_4_LLMs_and_Text_Generation/RAG_M4.pdf)
 
 | # | Лекция / код |
 |---|---|
@@ -93,7 +93,7 @@ images/     — иллюстрации
 | 12 | [RAG vs. Fine-Tuning](theory/Module_4_LLMs_and_Text_Generation/12_lec_RAG_vs_Fine-Tuning.notes.md) |
 | 13 | [код (assignment): Developing a RAG-based Chatbot](theory/Module_4_LLMs_and_Text_Generation/13_code_assigment_Developing_a_RAG-based_Chatbot.md) |
 
-### [Module 5 — RAG Systems in Production](theory/Module_5_RAG_Systems_in_Production)
+### [Module 5 — RAG Systems in Production](theory/Module_5_RAG_Systems_in_Production) · [слайды 📑](theory/Module_5_RAG_Systems_in_Production/RAG_M5.pdf)
 
 | # | Лекция / код |
 |---|---|
