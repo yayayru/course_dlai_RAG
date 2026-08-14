@@ -4,7 +4,7 @@
 
 ### Назначение
 
-`C1M4_Assignment.ipynb` — итоговое оцениваемое (graded) задание модуля 4: построение чат-бота на основе RAG для вымышленного интернет-магазина одежды **Fashion Forward Hub**. В отличие от graded-заданий модулей 2 и 3, в данном репозитории этот ноутбук содержит **решённые** (заполненные) ячейки с кодом — все 5 упражнений реализованы, и почти все ячейки с выводами показывают успешное выполнение и прохождение unit-тестов (`[92m All tests passed!`), за одним отмеченным ниже исключением.
+`C1M4_Assignment.ipynb` — итоговое оцениваемое (graded) задание модуля 4: построение чат-бота на основе RAG для вымышленного интернет-магазина одежды **Fashion Forward Hub**. В отличие от graded-заданий модулей 2 и 3, в данном репозитории этот ноутбук содержит **решённые** (заполненные) ячейки с кодом — все 5 упражнений реализованы, и все ячейки с выводами показывают успешное выполнение и прохождение unit-тестов (`[92m All tests passed!`).
 
 Задачи задания (по вводной ячейке):
 
@@ -43,43 +43,51 @@
 
 #### Exercise 1 — `check_if_faq_or_product(query)`
 
-Строит хардкоженный промпт, классифицирующий запрос как `"FAQ"` или `"Product"` для розничной компании Fashion Forward Hub, с определениями обеих категорий и 6 примерами (запрос → ожидаемая метка), инструкцией отвечать одним словом. Вызывает `generate_params_dict(prompt, temperature=0.4, top_p=0.4)`, затем `generate_with_single_input(**kwargs)`, возвращает `response['content']` как метку.
+Строит хардкоженный промпт в стиле «интеллектуального роутера»: *«You are intelligent router whose job is decide whether user query is relevant to "FAQ" or "Product". Given a user query, you have output either "FAQ" or "Product" by following given instructions: — Select "Product", if user query is relevant to fashion product details. — Select "FAQ", if user query is relevant to company or product policy. — Output must be single word either "FAQ" or "Product" only.»*. Внутри функции добавлены отладочные `print("prompt: ", prompt)` и `print(kwargs)`/`print(response)` — поэтому вывод демонстрационных ячеек содержит не только итоговые метки, но и весь промпт, словарь `kwargs` и сырой словарь ответа LLM для каждого запроса. Вызывает `generate_params_dict(prompt=prompt, temperature=0.3)`, затем `generate_with_single_input(**kwargs)`, возвращает `response['content']` как метку.
 
-Проверка на 5 запросах в выводе ноутбука показала 3 успешных классификации (*«What is your return policy?»* → `FAQ`, *«Give me three examples of blue T-shirts...»* → `Product`, *«How can I contact the user support?»* → `FAQ`), после чего четвёртый вызов (*«Do you have blue Dresses?»*) прервался ошибкой **`504 Gateway Timeout`** от прокси-сервера (`Exception: Error while calling LLM: ... 504 Gateway Timeout ERROR ... We can't connect to the server for this app or website at this time`) — временная сетевая/инфраструктурная ошибка прокси, а не ошибка в коде решения. Тем не менее, юнит-тест `unittests.test_check_if_faq_or_product(check_if_faq_or_product)` в отдельном последующем вызове прошёл успешно (`All tests passed!`).
+Проверка на 5 запросах в выводе ноутбука показала все 5 успешных классификаций, совпадающих с ожидаемым выводом (*«What is your return policy?»* → `FAQ`, *«Give me three examples of blue T-shirts...»* → `Product`, *«How can I contact the user support?»* → `FAQ`, *«Do you have blue Dresses?»* → `Product`, *«Create a look suitable for a wedding party...»* → `Product`); для двух из пяти запросов (первого и третьего) модель вернула метку с лишними двойными кавычками (`'"FAQ"'` вместо `'FAQ'`), что не мешает визуальному сравнению меток в distinct-выводе, но означает, что фактическая строка отличается от чистого слова `FAQ`. Юнит-тест `unittests.test_check_if_faq_or_product(check_if_faq_or_product)` прошёл успешно (`All tests passed!`).
 
 #### Exercise 2 — `query_on_faq(query, **kwargs)`
 
 Сначала дана вспомогательная (не оцениваемая) функция `generate_faq_layout(faq_dict)`, которая форматирует список FAQ в текстовый layout вида `Question: ... Answer: ... Type: ...\n` для каждой записи — результат сохранён в глобальную `FAQ_LAYOUT`.
 
-`query_on_faq` строит промпт, включающий `FAQ_LAYOUT` и вопрос пользователя (*«Answer the user query using this list of FAQs {FAQ_LAYOUT}. Query: {query}»*), формирует `kwargs = generate_params_dict(prompt, temperature=0.4, top_p=0.4)` и возвращает `kwargs` (сам вызов LLM выполняется отдельно вызывающим кодом). Продемонстрирован пример: вопрос про возврат нежелаемого товара — LLM отвечает про Returns Center и 30-дневный срок возврата, корректно опираясь на соответствующие пункты FAQ. Юнит-тест пройден (`All tests passed!`).
+`query_on_faq` строит промпт вида *«Given FAQ details, your task is answer user query in the context following FAQ detail accurately and concisely. user query: {query} FAQ details: {FAQ_LAYOUT}»*, формирует `kwargs = generate_params_dict(prompt=prompt, **kwargs)` (проброс дополнительных параметров через `**kwargs` функции) и возвращает `kwargs` (сам вызов LLM выполняется отдельно вызывающим кодом). Продемонстрирован пример: вопрос про возврат нежелаемого товара — LLM отвечает пошаговой инструкцией (раздел «My Account» → «Return or Exchange» → форма возврата → отправка), с уточнением про 30-дневный срок возврата и сохранность бирок, корректно опираясь на соответствующие пункты FAQ. Юнит-тест пройден (`All tests passed!`).
 
 #### Exercise 3 — `decide_task_nature(query)`
 
-Строит промпт, классифицирующий запрос как `"creative"` или `"technical"` для Fashion Forward Hub, с определениями категорий и 6 примерами, вызывает `generate_params_dict(prompt, temperature=0.4, top_p=0.4)` и `generate_with_single_input(**kwargs)`, возвращает `response['content']`.
+Строит промпт в том же стиле «роутера»: *«You are intelligent router whose job is decide whether user query is relevant to "technical" or "creative". ... — Select "creative", if user asking for help creating a stylish look for visiting a museum. — Select "technical", if user comes with descriptions of specific products... — Output must be single word either "creative" or "technical" only.»*. Вызывает `generate_params_dict(prompt=prompt, max_tokens=1, temperature=0)` и `generate_with_single_input(**kwargs)`, возвращает `response['content']`.
 
-Проверка на 5 запросах в выводе ноутбука: все 5 меток совпали с логически ожидаемыми (*«Give me two sneakers with vibrant colors.»* → `creative`; *«What are the most expensive clothes...»* → `technical`; *«...suggestion on an accessory to match...»* → `creative`; *«Give me three trousers with vibrant colors...»* → `technical`; *«Create a look for a woman walking in a park...»* → `creative`) — при этом markdown-ячейка с «Expected Output» показывает иные ожидаемые метки для первого запроса (`technical` вместо полученного `creative`), то есть фактический вывод модели частично разошёлся с текстом ожидаемого вывода в задании; тем не менее юнит-тест `unittests.test_decide_task_nature` пройден успешно (`All tests passed!`).
+Проверка на 5 запросах в выводе ноутбука: все 5 меток совпали с ожидаемым выводом задания (*«Give me two sneakers with vibrant colors.»* → `technical`; *«What are the most expensive clothes...»* → `technical`; *«...suggestion on an accessory to match...»* → `creative`; *«Give me three trousers with vibrant colors...»* → `technical`; *«Create a look for a woman walking in a park...»* → `creative`). Юнит-тест `unittests.test_decide_task_nature` пройден успешно (`All tests passed!`).
 
 #### Exercise 4 — `get_params_for_task(task)`
 
-Возвращает словарь `{"top_p": ..., "temperature": ...}` в зависимости от типа задачи:
+Определяет словарь `PARAMETERS_DICT` с параметрами `{"top_p": ..., "temperature": ...}` для обоих типов задач и возвращает соответствующее значение по ключу `task`:
 
-- `"technical"` → `{"top_p": 0.4, "temperature": 0.4}` (низкая случайность);
-- `"creative"` → `{"top_p": 0.8, "temperature": 1.5}` (более высокая случайность);
-- иное значение → `{"top_p": 0.5, "temperature": 1.0}` (параметры по умолчанию).
+- `"technical"` → `{'top_p': 0.9, 'temperature': 0.1}` (низкая случайность);
+- `"creative"` → `{"top_p": 0.7, 'temperature': 1.2}` (более высокая случайность);
+- иное значение → используется тот же набор, что и для `"technical"` (запасной вариант).
 
-Пример вызова `get_params_for_task("technical")` → `{'top_p': 0.4, 'temperature': 0.4}`. Юнит-тест пройден.
+Пример вызова `get_params_for_task("technical")` → `{'top_p': 0.9, 'temperature': 0.1}`. Юнит-тест `unittests.test_get_params_for_task` пройден успешно (`All tests passed!`).
 
 ### Раздел 4 — Извлечение товаров на основе метаданных из запроса
 
 #### Подготовка возможных значений метаданных
 
-В ячейке (не градируемой) строится словарь `values` — множество всех встречающихся в `PRODUCTS_DATA` значений для ключей `gender`, `masterCategory`, `articleType`, `baseColour`, `season`, `usage` (исключая `product_id`, `price`, `productDisplayName`, `subCategory`, `year`). Пример: `values['season']` → `{'All seasons', 'Fall', 'Spring', 'Summer', 'Winter'}`.
+В ячейке (не градируемой) строится словарь `values` — множество всех встречающихся в `PRODUCTS_DATA` значений для ключей `gender`, `masterCategory`, `articleType`, `baseColour`, `season`, `usage` (исключая `product_id`, `price`, `productDisplayName`, `subCategory`, `year`). Примеры: `values['season']` → `{'All seasons', 'Fall', 'Spring', 'Summer', 'Winter'}`; `values['gender']` → `{'Boys', 'Girls', 'Men', 'Unisex', 'Women'}`.
 
 #### Exercise 5 — `generate_metadata_from_query(query)`
 
-Строит промпт, инструктирующий LLM сгенерировать JSON с полями `gender`, `masterCategory`, `articleType`, `baseColour`, `price` (объект с `min`/`max`, по умолчанию `{"min": 0, "max": "inf"}`), `usage`, `season` для фильтрации товаров по запросу, с примером ожидаемого формата JSON внутри промпта (с двойными фигурными скобками `{{ }}` для экранирования в f-string). Вызывает `generate_params_dict(prompt, temperature=0.0, top_p=0.4, max_tokens=1500)` и `generate_with_single_input(**kwargs)`, возвращает `response['content']`.
+Строит промпт, инструктирующий LLM извлечь из запроса поля `gender`, `masterCategory`, `articleType`, `baseColour`, `season`, `usage` (значения — списки строк) и `price` (объект с `min`/`max`, по умолчанию `{"min": 0, "max": "inf"}`), с примером ожидаемого формата JSON внутри промпта (с двойными фигурными скобками `{{ }}` для экранирования в f-string). Вызывает `generate_with_single_input(prompt=prompt, temperature=0.0, max_tokens=1500)` напрямую (без промежуточного `generate_params_dict`) и возвращает `response.get("content")`.
 
-Пример: для запроса *«Create a look for a man that suits a sunny day in the park. I don't want to spend more than 300 dollars on each piece.»* LLM возвращает корректный JSON: `{"gender": "Men", "masterCategory": "Apparel", "articleType": ["Shirts", "Pants"], "baseColour": ["Light", "Pastel"], "price": {"min": 0, "max": 300}, "usage": ["Casual"], "season": ["Summer"]}`. Юнит-тест `unittests.test_generate_metadata_from_query` пройден успешно.
+Примеры из вывода ноутбука:
+
+- *«Create a look for a man that suits a sunny day in the park. I don't want to spend more than 300 dollars on each piece.»* → `{"gender": ["Men"], "masterCategory": ["Apparel"], "articleType": ["Shirts"], "baseColour": ["Light Blue", "White"], "price": {"min": 0, "max": 300}, "usage": ["Casual"], "season": ["Summer"]}`.
+- *«Give me three blue dresses suitable for a wedding party, less than 200 dollars and at least 50 dollars»* (после `parse_json_output`) → `{'gender': ['Women'], 'masterCategory': ['Apparel'], 'articleType': ['Dresses'], 'baseColour': ['Blue'], 'price': {'min': 50, 'max': 200}, 'usage': ['Formal'], 'season': ['All seasons']}`.
+- *«I need men shirt of 2xl, with price range 100 to 1000, for summer season in black color»* → `{'gender': ['Men'], ..., 'baseColour': ['Black'], 'price': {'min': 100, 'max': 1000}, 'usage': ['Formal'], 'season': ['Summer']}`.
+- *«I need men shirt of 2xl, for summer season in black color»* (без указания цены) → `'price': {'min': 0, 'max': 'inf'}`.
+- *«I need shirt for baby»* → `{'gender': ['Baby'], ..., 'usage': ['Casual'], 'season': ['All seasons']}` (значение `'Baby'` не входит в реальный набор `values['gender']`, но демонстрирует, что LLM может галлюцинировать значение вне заданного словаря).
+
+Юнит-тест `unittests.test_generate_metadata_from_query` пройден успешно (`All tests passed!`).
 
 #### Вспомогательные (не градируемые) функции
 
@@ -91,13 +99,15 @@
 
 Коллекция `products_collection = client.collections.get('products')` содержит `len(products_collection) = 44423` объектов.
 
-**Наблюдаемая ошибка (в выводе ноутбука, не связана с решением упражнений):** вызов `get_relevant_products_from_query("Give me three blue colour tshirts for men between £100 and £300")` завершился ошибкой `TypeError: object of type 'NoneType' has no len()` (внутри функции, при попытке применить `len()` к результату запроса, вернувшему `None`), а последующая попытка обратиться к `t[0].properties` — ошибкой `IndexError: list index out of range`, так как переменная `t` в итоге оказалась пустым списком `[]`. Это демонстрационные (не оцениваемые) ячейки — ошибка не влияет на прохождение юнит-тестов заданий.
+Демонстрация на запросе *«Give me three T-shirts to use in sunny days»*: `generate_filters_from_query` строит 6 фильтров (`gender: ['Men', 'Women']`, `masterCategory: ['Apparel']`, `articleType: ['T-shirts']`, `baseColour: ['White', 'Light Blue', 'Yellow']`, `usage: ['Casual']`, `season: ['Summer']`); отдельная (не градируемая, отладочная) ячейка вручную прогоняет цикл постепенного ослабления фильтров и печатает число найденных объектов на каждом шаге (на первых шагах — `0` результатов, далее число растёт по мере отбрасывания менее важных фильтров). Итоговый вызов `get_relevant_products_from_query(query)` возвращает непустой список товаров, например `t[0].properties` → `{'gender': 'Men', ..., 'productDisplayName': 'Inkfruit Mens D day T-shirt', ...}` — то есть найденный товар действительно является футболкой.
 
 ### Раздел 5 — Финальная функция и ЧатБот
 
 - `query_on_products(query)` — определяет природу запроса (`decide_task_nature`), получает параметры (`get_params_for_task`), извлекает релевантные товары (`get_relevant_products_from_query`), строит контекст (`generate_items_context`), формирует промпт с инструкцией указывать ID товара в ответе и ограничением до пяти товаров, если число не указано в запросе, и возвращает `kwargs = generate_params_dict(prompt, role='assistant', **parameters_dict)`.
 - `answer_query(query)` — финальная объединяющая функция: вызывает `check_if_faq_or_product(query)`; если метка не `'FAQ'`/`'Product'`, возвращает запасной (fallback) промпт с просьбой ответить на основе имеющегося контекста; если `'FAQ'` — вызывает `query_on_faq`; если `'Product'` — вызывает `query_on_products` в `try/except`, при исключении возвращая запасной промпт с просьбой попросить пользователя переформулировать запрос.
 - `ChatWidget(generator_function=answer_query)` — создаёт интерактивный виджет чат-бота на `ipywidgets`, использующий `answer_query` как функцию генерации ответа; предлагаемые тестовые запросы: *«Do you have blue t-shirts on your catalogue?»*, *«I bought a dress and I didn't like it. How can I get a refund?»*, *«I am going to a party at the beach. Can you suggest a nice look for me? It will be a warm night, and I'm a man.»*
+
+В выводе ноутбука показаны три успешных демонстрации `query_on_products` (вызов → `generate_with_single_input(**kwargs)` → `print(result['content'])`): для *«Make a wonderful look for a man attending a wedding party happening during night.»* LLM предлагает пижамный костюм и аксессуары со ссылками на конкретные ID товаров; для *«Give me three T-shirts for sunny days»* — список из трёх футболок с ID и характеристиками; для *«I need black shirt of 2xl size under 100$»* — список чёрных рубашек с ценами (например, `$49.99`, `$39.99`), удовлетворяющих ограничению по цене.
 
 ### Ограничения и предпосылки
 
@@ -106,4 +116,4 @@
 - Модель по умолчанию для генерации — `meta-llama/Llama-3.2-3B-Instruct-Turbo`; `ChatBot`/`ChatWidget` использует `meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo`.
 - Для эмбеддингов используется модель `BAAI/bge-base-en-v1.5`.
 - Раздел 5.2 (`ChatWidget`) — интерактивный виджет, требующий среды Jupyter с `ipywidgets` и не предназначенный для автоматического запуска без участия пользователя; изображения товаров подгружаются с локального диска по пути `/home/jovyan/data/collections/collections_assignment_4/images/{id}.jpg`.
-- В выводах ноутбука присутствуют признаки нестабильности внешнего прокси-сервиса (ошибка `504 Gateway Timeout` в разделе 3.1) и одна необъяснённая в тексте ноутбука ошибка `TypeError`/`IndexError` в демонстрационных (не градируемых) ячейках раздела 4.3 — обе зафиксированы как наблюдаемые факты без предположений об их причине.
+- В текущей версии ноутбука все 5 упражнений реализованы и все юнит-тесты проходят успешно; ранее в этом файле документировались временная ошибка `504 Gateway Timeout` при демонстрации `check_if_faq_or_product` (раздел 3.1) и ошибка `TypeError`/`IndexError` при демонстрации `get_relevant_products_from_query` на запросе с ограничением по цене в фунтах (раздел 4.3) — в исправленной версии обе проблемы отсутствуют: все демонстрационные вызовы в обоих разделах завершаются успешно.

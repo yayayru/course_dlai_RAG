@@ -1,10 +1,10 @@
-См. `practice\Module1\Graded_Assignments\C1M1_Assignment_Solution.ipynb`
+См. `practice\Module1\Graded_Assignments\C1M1_Assignment.ipynb`
 
 ## Конспект по коду
 
 ### Назначение assignment notebook
 
-`C1M1_Assignment_Solution.ipynb` — решение первого графируемого задания (`Assignment: Introduction to RAG Systems`) модуля. В нём строится простой RAG pipeline на датасете с новостной информацией.
+`C1M1_Assignment.ipynb` — решённое первое графируемое задание (`Assignment: Introduction to RAG Systems`) модуля (ранее в этой же папке лежали отдельные файлы `C1M1_Assignment_Solution.ipynb` и `C1M1_Assignment_2026_03_27_13_57_53.ipynb` — они удалены, актуальный и единственный файл теперь `C1M1_Assignment.ipynb`). В нём строится простой RAG pipeline на датасете с новостной информацией.
 
 Согласно вводной markdown-ячейке, используется модель [`llama-3-1-8b-instruct-turbo`](https://www.together.ai/models/llama-3-1), обученная на данных до декабря 2023 года; RAG нужен, чтобы модель могла включать в ответы информацию о событиях, произошедших в 2024 году.
 
@@ -28,6 +28,8 @@
 - `embeddings.joblib` (предвычисленные эмбеддинги);
 - `images\toc.png`, `images\rag_overview.png` (иллюстрации, используемые в markdown-ячейках).
 
+`utils.py` и `unittests.py` не изменились по сравнению с предыдущей версией задания.
+
 ### Импорты notebook
 
 ```python
@@ -49,7 +51,7 @@ import unittests
 NEWS_DATA = read_dataframe("news_data_dedup.csv")
 ```
 
-В markdown указано, что используется Kaggle-датасет [`News Headlines 2024`](https://www.kaggle.com/datasets/dylanjcastillo/news-headlines-2024), содержащий тысячи новостных заголовков и связанной информации от BBC News.
+В markdown указано, что используется Kaggle-датасет [`News Headlines 2024`](https://www.kaggle.com/datasets/dylanjcastillo/news-headlines-2024), содержащий тысячи новостных заголовков и связанной информации от BBC News. Проверка размера датасета — `len(NEWS_DATA)` — visible output: `870`.
 
 Проверка структуры данных через `pprint(NEWS_DATA[9:11])` показывает записи со структурой: `guid`, `title`, `description`, `venue`, `url`, `published_at`, `updated_at` (пример — новости про Moulin Rouge в Париже и об использовании Украиной ракет большей дальности).
 
@@ -198,9 +200,11 @@ query = "Tell me about the US GDP in the past 3 years."
 print(llm_call(query, use_rag=True))
 ```
 
-Visible output этой ячейки в notebook — **ошибка**: `Exception: Error while calling LLM: f{"id": "obKqnyJ-6Ng1vN-9dd626b5bd70ab58", "error": {"message": "Internal server error", "type": "server_error", "param": null, "code": null}}`, с полным Python traceback, указывающим на строку `raise Exception(...)` внутри `generate_with_single_input` в `utils.py`.
+Visible output — развёрнутый ответ LLM, заземлённый в извлечённых новостях 2024 года: модель по годам (2022, 2023, 2024) описывает динамику доли США в мировом ВВП, ссылаясь на конкретные цифры из отформатированных новостей (например, «26.3% of the global gross domestic product... the highest in almost two decades»), и в конце добавляет ремарку про альтернативную метрику благополучия, упомянутую в одной из статей.
 
-Следующая ячейка `print(llm_call(query, use_rag=False))` видимого вывода в solution notebook не имеет.
+Следующая ячейка `print(llm_call(query, use_rag=False))` тоже имеет visible output — ответ без RAG, основанный только на собственных знаниях модели (обучена до декабря 2023): перечисляются оценки роста ВВП США за 2021 (+5.7%, $22.67 трлн), 2022 (+2.1%, $23.32 трлн) и 2023 (+1.8% за 1 квартал, $23.65 трлн), с оговоркой, что цифры могут быть неточными и стоит свериться с BEA/ФРС.
+
+Сравнение двух ответов наглядно демонстрирует цель задания: версия с RAG оперирует конкретными данными из новостей 2024 года (например, точной цифрой доли США в мировом ВВП на 2024 год), а версия без RAG — общими оценками из параметрической памяти модели, ограниченной декабрём 2023 года.
 
 ### Раздел 4: эксперименты с RAG-системой
 
@@ -286,4 +290,4 @@ NEWS_DATA = pd.read_csv("./news_data_dedup.csv").to_dict(orient='records')
 - доступ к Together.ai или proxy-серверу Coursera (переменные окружения `IN_COURSERA_ENVIRON`, `TOGETHER_BASE_URL`, `TOGETHER_API_KEY`);
 - установленные зависимости: `sentence_transformers`, `scikit-learn` (`sklearn`), `joblib`, `pandas`, `numpy`, `ipywidgets`, `together`, `requests`, `python-dateutil`, а для тестов — `dlai_grader`.
 
-Как показывает сама solution-ячейка `llm_call(query, use_rag=True)`, вызов LLM может завершаться ошибкой сервера (`Internal server error`) — это фактический видимый результат в notebook, а не гипотетический сценарий. Notebook и helper-код выполняют реальные сетевые вызовы (embedding-модель, LLM API) при исполнении соответствующих ячеек; в рамках данного конспекта код изучался статически, без запуска notebook, скриптов или отдельных ячеек.
+Notebook и helper-код выполняют реальные сетевые вызовы (embedding-модель, LLM API) при исполнении соответствующих ячеек; в рамках данного конспекта код изучался статически, без запуска notebook, скриптов или отдельных ячеек. В сохранённых outputs текущей версии notebook оба вызова `llm_call` (с `use_rag=True` и `use_rag=False`) завершаются успешно и содержат развёрнутые ответы — в отличие от более ранней версии этого файла, где вызов с `use_rag=True` был зафиксирован с ошибкой `Internal server error` со стороны LLM-провайдера.

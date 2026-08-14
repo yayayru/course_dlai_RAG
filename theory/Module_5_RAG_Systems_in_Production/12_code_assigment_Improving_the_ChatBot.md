@@ -64,12 +64,10 @@ tracer = tracer_provider_phoenix.get_tracer(__name__)
 
 Реализованный `simplified`-промпт:
 ```
-Classify this query for a clothing store as either FAQ or Product.
-FAQ means general store questions (like refund policy, locations, contact info).
-Product means questions about specific products, sizes, colors, or prices.
-Return only 'FAQ' or 'Product'.
-
-Query: {query}
+On the base of user query only single word output either 'FAQ' or 'Product'.
+- Output 'FAQ', if user query is relevant to company or product policy.
+- Output 'Product', if user query is relevant to fashion product details.
+query: {query}
 ```
 
 Вызов LLM обёрнут в трассировку (`tracer.start_as_current_span("routing_faq_or_product", openinference_span_kind='tool')`, вложенный span `router_call` с `openinference_span_kind='llm'`, записывающий атрибуты `llm.token_count.prompt/completion/total`, `llm.model_name`, `llm.provider`). Есть постобработка: если в ответе LLM встречается `'faq'` (без учёта регистра) — метка `FAQ`, если `'product'` — `Product`, иначе `'undefined'`.
@@ -80,13 +78,13 @@ Query: {query}
 
 | Запрос | Standard | Simplified |
 |---|---|---|
-| «What is your return policy?» | FAQ / 218 токенов | FAQ / 113 токенов |
-| «Give me three examples of blue T-shirts...» | Product / 224 | **FAQ** (неверно) / 111 |
-| «How can I contact the user support?» | FAQ / 220 | FAQ / 115 |
-| «Do you have blue Dresses?» | Product / 218 | **FAQ** (неверно) / 105 |
-| «Create a look suitable for a wedding party...» | Product / 224 | **FAQ** (неверно) / 111 |
+| «What is your return policy?» | FAQ / 218 токенов | FAQ / 96 токенов |
+| «Give me three examples of blue T-shirts...» | Product / 224 | Product / 102 |
+| «How can I contact the user support?» | FAQ / 220 | FAQ / 98 |
+| «Do you have blue Dresses?» | Product / 218 | Product / 96 |
+| «Create a look suitable for a wedding party...» | Product / 224 | Product / 102 |
 
-Таким образом, в фактическом выводе ноутбука `simplified`-версия укладывается в лимит по токенам (все значения < 180), но **допускает 3 ошибки классификации из 5** демонстрационных запросов (путает Product с FAQ) — то есть визуально показанный результат расходится с требованием сохранить ту же точность классификации, хотя формальный юнит-тест (`test_check_if_faq_or_product`), запущенный на своём отдельном наборе примеров, отчитался об успехе.
+В исправленной версии `simplified`-промпт полностью укладывается в лимит по токенам (все значения 96–102, заметно ниже 180) и **корректно классифицирует все 5 из 5** демонстрационных запросов — метки simplified-версии совпадают со standard-версией на каждом запросе. Юнит-тест `test_check_if_faq_or_product` также проходит успешно.
 
 #### 4.2 Answering a FAQ question — `generate_faq_layout` (не градируется)
 
@@ -127,23 +125,21 @@ results = faq_collection.query.near_text(query=query, limit=5)
 
 Реализованный `simplified`-промпт:
 ```
-Classify this query as either 'creative' or 'technical' for a clothing store.
-Creative → making suggestions, composing outfits, generating new ideas.
-Technical → asking about product details, availability, prices, or sizes.
-Return only one word: creative or technical.
-
-Query: {query}
+On the base of user query only single word output either 'creative' or 'technical'.
+- Output 'creative', if user query relevant thing require creativity and user ask for suggestions.
+- Output 'technical', if user query is specifically relevant any technical products.
+query: {query}
 ```
 Вызов LLM обёрнут в трассировку (span `decide_task_nature`, вложенный span `router_call`).
 
 Юнит-тест `unittests.test_decide_task_nature(decide_task_nature)` — пройден.
 
-Демонстрация на 5 запросах — все метки совпали с ожидаемыми, все значения токенов ниже 170 (диапазон 103–119):
-- «Give me two sneakers with vibrant colors.» → technical / 103
-- «What are the most expensive clothes...» → technical / 107
-- «...suggestion on an accessory to match...» → creative / 113
-- «Give me three trousers with vibrant colors...» → technical / 108
-- «Create a look for a woman walking in a park...» → creative / 119
+Демонстрация на 5 запросах — все значения токенов ниже 170 (диапазон 98–114); 4 из 5 меток совпали с ожидаемыми, что укладывается в требование «не более одной ошибки» (accuracy ≥ 80%):
+- «Give me two sneakers with vibrant colors.» → **creative** (неверно, ожидалось `technical`) / 98
+- «What are the most expensive clothes...» → technical / 102
+- «...suggestion on an accessory to match...» → creative / 108
+- «Give me three trousers with vibrant colors...» → technical / 103
+- «Create a look for a woman walking in a park...» → creative / 114
 
 #### 4.5 Retrieving the parameters for a given task — `get_params_for_task(task)`
 
@@ -157,7 +153,7 @@ Query: {query}
 
 Промпт идентичен по структуре модулю 4, но обёрнут в трассировку (span `generate_metadata_from_query`, вложенный `llm_call`) и теперь возвращает пару `(content, total_tokens)`.
 
-Демонстрация: запрос про мужской образ для солнечного дня в парке (бюджет до 300$) → JSON `{"gender": ["Men"], "masterCategory": ["Apparel"], "articleType": ["Shirts", "Shorts", "Sweaters", "Socks"], "baseColour": ["Yellow", "Orange", "Green", "Nude"], "price": {"min": 0, "max": 300}, "usage": ["Casual", "Travel"], "season": ["Summer"]}`, при этом **`total_tokens = 1464`** — комментарий в markdown отмечает, что «до сих пор каждый product-запрос обрабатывал около 1500 токенов — в основном из-за генерации фильтров по множеству категорий перед поиском».
+Демонстрация: запрос про мужской образ для солнечного дня в парке (бюджет до 300$) → JSON `{"gender": ["Men"], "masterCategory": ["Apparel"], "articleType": ["Shirts", "Shorts", "Sunglasses"], "baseColour": ["Yellow", "Orange", "Green"], "price": {"min": 0, "max": 300}, "usage": ["Casual", "Smart Casual"], "season": ["Summer"]}`, при этом **`total_tokens = 1457`** — комментарий в markdown отмечает, что «до сих пор каждый product-запрос обрабатывал около 1500 токенов — в основном из-за генерации фильтров по множеству категорий перед поиском».
 
 **Ключевое архитектурное решение задания**: вместо детальной генерации метаданных-фильтров предлагается **упростить** процесс — просто выполнять семантический поиск напрямую по запросу пользователя, без генерации метаданных вообще (быстрее, дешевле по токенам, по-прежнему эффективно для большинства запросов).
 
@@ -174,7 +170,7 @@ Query: {query}
 Юнит-тест `unittests.test_get_relevant_products_from_query(get_relevant_products_from_query)` — пройден.
 
 Демонстрация на запросе *«Give me three T-shirts to use in sunny days»*:
-- `simplified=False` → **1432** токена.
+- `simplified=False` → **1452** токена.
 - `simplified=True` → **0** токенов (запрос отправляется напрямую в vector search без LLM-вызова).
 
 #### 5.4 Generating the retrieved items as context — `generate_items_context(results)` (не градируется, дана целиком, `@tracer.tool`)
@@ -186,8 +182,8 @@ Query: {query}
 Суммирует токены на каждом шаге (`decide_task_nature` + `get_relevant_products_from_query`), строит промпт с явным ограничением **«Never use more than 5 clothing products available below to compose your answer»** и требованием указывать ID товара, генерирует `kwargs` через `generate_params_dict(PROMPT, role='assistant', **parameters_dict)`.
 
 Сравнение на запросе *«Make a wonderful look for a man attending a wedding party happening during night.»*:
-- Previous setup (`simplified=False`): суммарно **3275** токенов (kwargs-генерация + финальный LLM-вызов), ответ рекомендует 3 пары обуви (Product ID 33698, 41475, 50775).
-- New setup (`simplified=True`): суммарно **1836** токенов, ответ рекомендует другой набор товаров (обувь + галстук с зажимом и платком, ID 8960, 17375, 40245) с более развёрнутым описанием образа.
+- Previous setup (`simplified=False`): суммарно **2785** токенов (kwargs-генерация + финальный LLM-вызов), ответ рекомендует комплект из 5 позиций — чёрный пиджак (ID 59106), красный пиджак (ID 17150), формальную рубашку (ID 12347) и брюки (ID 23072, 23073).
+- New setup (`simplified=True`): генерация `kwargs` заняла **105** токенов, суммарно с финальным LLM-вызовом — **1832** токена; ответ рекомендует другой набор товаров (чёрные туфли ID 8960 и три набора «галстук + запонки + платок» ID 17375, 40216, 17365, плюс ID 58921) с более развёрнутым описанием образа.
 
 ### Раздел 6 — The final function!
 
@@ -196,8 +192,8 @@ Query: {query}
 **Наблюдение о несоответствии документации коду**: в docstring и в markdown-описании раздела 6 явно указано, что функция должна «Add the information into a dataframe» (добавлять информацию в dataframe) как один из шагов обработки. В изученном коде `answer_query`, однако, никакой логики работы с `pandas.DataFrame` не реализовано — функция лишь возвращает `(kwargs, total_tokens)` без записи в датафрейм или иной лог. Соответственно, в `unittests.py` присутствует тест `test_generate_log`, но соответствующая функция `generate_log` в ноутбуке не определена и нигде не вызывается.
 
 Демонстрация на запросе *«Give me three examples of blue t-shirts available on your catalogue.»*:
-- `simplified=False`: суммарно **3392** токена, ответ перечисляет 3 синих футболки с ID.
-- `simplified=True`: суммарно **1744** токена, тот же по существу ответ (те же 3 товара: ID 1847, 3103, 3754).
+- `simplified=False`: суммарно **3400** токенов, ответ перечисляет 3 синих футболки с ID (1847, 3995, 5016).
+- `simplified=True`: суммарно **1734** токена, ответ перечисляет другой набор из 3 футболок (ID 1847, 3103, 3754); отдельная ячейка показывает разбивку `total_tokens, result['usage']['total_tokens']` → `(206, 1528)` — 206 токенов ушло на генерацию `kwargs`, 1528 — на финальный ответ LLM.
 
 ### Раздел 7 — The ChatBot
 

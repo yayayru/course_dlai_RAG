@@ -8,7 +8,7 @@
 
 Вводная ячейка отдельно отмечает: задание предполагает, что слушатель уже умеет работать с коллекциями в Weaviate API (рекомендуется прочитать Ungraded Lab по Weaviate API) и что данные в этом задании уже прочанкованы (*chunked*) — практику по chunking предлагается получить в соответствующем Ungraded Lab.
 
-> Важно: как и в задании Module 2, изучен именно шаблон задания (`C1M3_Assignment.ipynb`), а не отдельный файл с готовым решением — файла `..._Solution.ipynb` в папке `Graded_Assignments` нет. При этом состояние графируемых ячеек в этом notebook неоднородно: Exercise 1 (`filter_by_metadata`) содержит незавершённую/ошибочную попытку решения, тогда как Exercises 2–5 (`semantic_search_retrieve`, `bm25_retrieve`, `hybrid_retrieve`, `semantic_search_with_reranking`) оставлены как шаблоны с плейсхолдером `None`. Часть ранних ячеек notebook (импорт `joblib`, загрузка `bbc_data.joblib`) в сохранённом выводе показывает ошибки `ModuleNotFoundError`/`NameError`, тогда как более поздние ячейки (`len(collection)`, `fetch_objects`) показывают успешный результат — то есть видимые outputs в этом notebook не отражают единый последовательный прогон сверху вниз. Всё это зафиксировано ниже как факт, без домысливания причин.
+> Как и в задании Module 2, файла `..._Solution.ipynb` в папке `Graded_Assignments` нет — `C1M3_Assignment.ipynb` единственный и решённый: все пять `GRADED CELL` (`filter_by_metadata`, `semantic_search_retrieve`, `bm25_retrieve`, `hybrid_retrieve`, `semantic_search_with_reranking`) реализованы, соответствующие юнит-тесты проходят, а visible output совпадает с указанным в markdown «Expected output».
 
 Оглавление notebook:
 
@@ -40,8 +40,6 @@ from weaviate.classes.query import (
 )
 ```
 
-Visible output этой ячейки в сохранённом notebook — `ModuleNotFoundError: No module named 'joblib'` с полным traceback.
-
 Далее:
 
 ```python
@@ -55,7 +53,7 @@ from utils import (
 import unittests
 ```
 
-Импорт `weaviate_server` запускает подключение к embedded Weaviate на уровне модуля (см. ниже), а импорт `flask_app` поднимает локальный inference-сервер, как и в ungraded labs модуля.
+Visible output этой ячейки — строки запуска Flask-приложения (`* Serving Flask app 'flask_app'`, `* Debug mode: off`) и информационное сообщение от токенизатора (`You're using a XLMRobertaTokenizerFast tokenizer...`). Импорт `weaviate_server` запускает подключение к embedded Weaviate на уровне модуля (см. ниже), а импорт `flask_app` поднимает локальный inference-сервер, как и в ungraded labs модуля.
 
 ### 2. Настройка клиента Weaviate и загрузка данных
 
@@ -65,7 +63,7 @@ import unittests
 client = weaviate.connect_to_local(port=8079, grpc_port=50050)
 ```
 
-Markdown поясняет: сервер уже запущен в бэкенде (в отличие от ungraded lab, где клиент создавался через `connect_to_embedded` напрямую в самом notebook, здесь клиент подключается к уже поднятому серверу — который в действительности запускается при импорте `weaviate_server` в разделе 1). Указана инструкция на случай проблем: перезапустить ядро (kernel).
+Markdown поясняет: сервер уже запущен в бэкенде (в отличие от ungraded lab, где клиент создавался через `connect_to_embedded` напрямую в самом notebook, здесь клиент подключается к уже поднятому серверу — который в действительности запускается при импорте `weaviate_server` в разделе 1). Указана инструкция на случай проблем: перезапустить ядро (kernel). Проверочный вывод `client` — visible output: `<weaviate.client.WeaviateClient at 0x...>`.
 
 #### 2.2 Загрузка данных
 
@@ -74,8 +72,6 @@ Markdown поясняет: сервер уже запущен в бэкенде 
 ```python
 bbc_data = joblib.load('data/bbc_data.joblib')
 ```
-
-Visible output — `NameError: name 'joblib' is not defined` (следствие несостоявшегося импорта `joblib` в разделе 1).
 
 `print_object_properties(bbc_data[0])` — visible output показывает первую запись датасета: статью *«Justin Welby: Political leaders should treat opponents as human beings»* (архиепископ Кентерберийский призывает политиков избегать «wedge issues»), с полями `article_content` (усечено), `description`, `guid`, `link`, `pubDate: 2024-01-01 00:00:04`, `title`.
 
@@ -100,33 +96,27 @@ Visible output показывает свойства объекта (стать�
 
 Задача: реализовать `filter_by_metadata(metadata_property, values, collection, limit=5)`, используя `collection.query.fetch_objects` с фильтром вида `Filter.by_property(metadata_property).contains_any(values)` (согласно hint-ам в markdown).
 
-Фактическое содержимое ячейки решения в сохранённом notebook:
+Решение:
 
 ```python
-from weaviate.collections.filters import Filter, Operator
+# GRADED CELL 
+
 def filter_by_metadata(metadata_property: str,
                        values: list[str],
                        collection: "weaviate.collections.collection.sync.Collection",
                        limit: int = 5) -> list:
     ### START CODE HERE ###
-    filter = Filter(
-        Operator.ContainsAny,
-        metadata_property,
-        values
-    )
-    response = collection.query.fetch_objects(
-        where=filter,
-        limit=limit)
+    response = collection.query.fetch_objects(limit=limit, filters=Filter.by_property(metadata_property).contains_any(values))
     ### END CODE HERE ###
     response_objects = [x.properties for x in response.objects]
     return response_objects
 ```
 
-Visible output импорта — `ModuleNotFoundError: No module named 'weaviate'`. При вызове `filter_by_metadata('title', ['Taylor Swift'], collection, limit=2)` сохранённый вывод показывает другую ошибку: `TypeError: _FetchObjectsQueryExecutor.fetch_objects() got an unexpected keyword argument 'where'` — то есть в этой версии решения используется параметр `where=filter` и низкоуровневый конструктор `Filter(Operator.ContainsAny, ...)`, тогда как согласно hint-ам markdown и реальной сигнатуре метода `fetch_objects` (это же видно по коду в ungraded lab 1) ожидается параметр `filters=` и высокоуровневый вызов `Filter.by_property(metadata_property).contains_any(values)`. Этот код и его ошибка зафиксированы здесь как есть, без исправления.
+Используется высокоуровневый вызов `Filter.by_property(metadata_property).contains_any(values)`, переданный в параметр `filters=` метода `collection.query.fetch_objects` — в точности как рекомендовано в hint-ах markdown.
 
-Ожидаемый (Expected output) результат для `filter_by_metadata` (по markdown) — два объекта о Golden Globes с упоминанием Margot Robbie и Taylor Swift, с полями `article_content`, `chunk`, `chunk_index: 4` и `5`, `description`, `link`, `pubDate: 2024-01-08 03:23:58+00:00`, `title: Margot Robbie, Taylor Swift and more on Golden Globes red carpet`.
+Вызов `filter_by_metadata('title', ['Taylor Swift'], collection, limit=2)` — visible output совпадает с Expected output: два объекта о Golden Globes с упоминанием Margot Robbie и Taylor Swift, с полями `article_content`, `chunk`, `chunk_index: 4` и `5`, `description`, `link`, `pubDate: 2024-01-08 03:23:58+00:00`, `title: Margot Robbie, Taylor Swift and more on Golden Globes red carpet`.
 
-Тест: `unittests.test_filter_by_metadata(filter_by_metadata, client)`.
+Тест: `unittests.test_filter_by_metadata(filter_by_metadata, client)` — visible output: `All tests passed!`.
 
 #### 3.2 Semantic search — Exercise 2
 
@@ -135,17 +125,15 @@ def semantic_search_retrieve(query: str,
                              collection: "weaviate.collections.collection.sync.Collection",
                              top_k: int = 5) -> list:
     ### START CODE HERE ###
-    response = None
+    response = collection.query.near_text(query, limit=top_k)
     ### END CODE HERE ###
     response_objects = [x.properties for x in response.objects]
     return response_objects
 ```
 
-По докстрингу и hint-у ожидаемое решение должно вызывать `collection.query.near_text(query, limit=top_k)`.
+Вызов `semantic_search_retrieve(query='Tell me about the last Taylor Swift show', collection=collection, top_k=2)` — visible output совпадает с Expected Output: два chunk из статьи *«'I've never had it this good' - Taylor Swift thanks fans after new Wembley record»* (`chunk_index: 10` и `4`).
 
-Ожидаемый (Expected Output) результат для `semantic_search_retrieve(query='Tell me about the last Taylor Swift show', collection=collection, top_k=2)` — два chunk из статьи *«'I've never had it this good' - Taylor Swift thanks fans after new Wembley record»* (`chunk_index: 10` и `4`).
-
-Тест: `unittests.test_semantic_search_retrieve(semantic_search_retrieve, client)`.
+Тест: `unittests.test_semantic_search_retrieve(semantic_search_retrieve, client)` — visible output: `All tests passed!`.
 
 #### 3.3 BM25 Search — Exercise 3
 
@@ -154,17 +142,15 @@ def bm25_retrieve(query: str,
                   collection: "weaviate.collections.collection.sync.Collection",
                   top_k: int = 5) -> list:
     ### START CODE HERE ###
-    response = None
+    response = collection.query.bm25(query, limit=top_k)
     ### END CODE HERE ###
     response_objects = [x.properties for x in response.objects]
     return response_objects
 ```
 
-Ожидаемое решение (по hint) — `collection.query.bm25(query, limit=top_k)`.
+Вызов `bm25_retrieve('Tell me about the last Taylor Swift show', collection, top_k=2)` — visible output совпадает с Expected Output: два chunk из статьи *«Killer Mike dismisses arrest at Grammys as 'speed bump'»* (`chunk_index: 4` и `3`) — то есть для этого конкретного запроса BM25 находит документ, вообще не связанный по смыслу с Taylor Swift, поскольку опирается только на точное совпадение ключевых слов.
 
-Ожидаемый (Expected Output) для `bm25_retrieve('Tell me about the last Taylor Swift show', collection, top_k=2)` — два chunk из статьи *«Killer Mike dismisses arrest at Grammys as 'speed bump'»* (`chunk_index: 4` и `3`) — то есть для этого конкретного запроса BM25 находит документ, вообще не связанный по смыслу с Taylor Swift, поскольку опирается только на точное совпадение ключевых слов.
-
-Тест: `unittests.test_bm25_retrieve(bm25_retrieve, client)`.
+Тест: `unittests.test_bm25_retrieve(bm25_retrieve, client)` — visible output: `All tests passed!`.
 
 #### 3.4 Hybrid search — Exercise 4
 
@@ -175,17 +161,15 @@ def hybrid_retrieve(query: str,
                     top_k: int = 5
                    ) -> list:
     ### START CODE HERE ###
-    response = None
+    response = collection.query.hybrid(query, alpha=alpha, limit=top_k)
     ### END CODE HERE ###
     response_objects = [x.properties for x in response.objects]
     return response_objects
 ```
 
-Ожидаемое решение (по hint) — `collection.query.hybrid(query, alpha=alpha, limit=top_k)`.
+Вызов `hybrid_retrieve('Tell me about the last Taylor Swift show', collection, top_k=2)` — visible output совпадает с Expected Output: один chunk про Killer Mike (`chunk_index: 4`) и один chunk про Taylor Swift/Wembley (`chunk_index: 10`) — то есть объединение keyword- и vector-компонентов даёт смешанный результат из результатов BM25 и semantic search.
 
-Ожидаемый (Expected Output) для `hybrid_retrieve('Tell me about the last Taylor Swift show', collection, top_k=2)` — один chunk про Killer Mike (`chunk_index: 4`) и один chunk про Taylor Swift/Wembley (`chunk_index: 10`) — то есть объединение keyword- и vector-компонентов даёт смешанный результат из результатов BM25 и semantic search.
-
-Тест: `unittests.test_hybrid_retrieve(hybrid_retrieve, client)`.
+Тест: `unittests.test_hybrid_retrieve(hybrid_retrieve, client)` — visible output: `All tests passed!`.
 
 #### Reranking — Exercise 5
 
@@ -199,22 +183,20 @@ def semantic_search_with_reranking(query: str,
     ### START CODE HERE ###
     if rerank_query is None:
         rerank_query = query
-    reranker = None
-    response = None
+    reranker = Rerank(query=rerank_query, prop=rerank_property)
+    response = collection.query.near_text(query, rerank=reranker, limit=top_k)
     ### END CODE HERE ###
     response_objects = [x.properties for x in response.objects]
     return response_objects
 ```
 
-По докстрингу и hint-ам ожидаемое решение: создать `reranker = Rerank(query=rerank_query, prop=rerank_property)` и вызвать `collection.query.near_text(query, limit=top_k, rerank=reranker)`.
+Решение: создаётся `reranker = Rerank(query=rerank_query, prop=rerank_property)`, который передаётся в `collection.query.near_text(query, rerank=reranker, limit=top_k)`.
 
 Markdown поясняет: reranker-модель принимает запрос и пассаж (в данном случае — chunk результата), чтобы вычислить оценку сходства (similarity score).
 
-Пример вызова: `semantic_search_with_reranking(query='Tell me about the conflicts in Latin America', collection=collection, top_k=2, rerank_property='chunk')`.
+Вызов `semantic_search_with_reranking(query='Tell me about the conflicts in Latin America', collection=collection, top_k=2, rerank_property='chunk')` — visible output совпадает с Expected Results: два chunk — о дипломатическом конфликте Испания–Аргентина из-за обвинения в употреблении наркотиков (*«Spain-Argentina row over drug-use accusation»*) и о протестах в Венесуэле по поводу оспариваемых результатов выборов (*«Protests across Venezuela as election dispute goes on»*).
 
-Ожидаемый (Expected Results) вывод — два chunk: о дипломатическом конфликте Испания–Аргентина из-за обвинения в употреблении наркотиков (*«Spain-Argentina row over drug-use accusation»*) и о протестах в Венесуэле по поводу оспариваемых результатов выборов (*«Protests across Venezuela as election dispute goes on»*).
-
-Тест: `unittests.test_semantic_search_with_reranking(semantic_search_with_reranking, client)`.
+Тест: `unittests.test_semantic_search_with_reranking(semantic_search_with_reranking, client)` — visible output: `All tests passed!`.
 
 ### 4. Встраивание Weaviate API в предыдущую схему (без грейдинга)
 
@@ -228,7 +210,7 @@ Markdown поясняет: reranker-модель принимает запрос
 4. форматирует каждый найденный документ в строку `Title: ..., Chunk: ..., Published at: ...\nURL: ...` (используется поле `chunk`, а не `description`, как в предыдущих заданиях);
 5. собирает финальный промпт с инструкцией использовать «2024 News» как часть общих знаний модели, дополнительно отмечая, что новостные данные упорядочены по релевантности (*«The news data is ordered by relevance.»*).
 
-Пример: `generate_final_prompt("Tell me the economic situation of the US in 2024.", top_k=5, retrieve_function=semantic_search_retrieve, use_rerank=False, rerank_property='title')` — печатается собранный промпт (без явно приведённого текста в сохранённом notebook, так как сама переменная `collection` внутри функции берётся из внешней области видимости, а не из параметров — это видно из тела функции, где `retrieve_function(..., collection=collection, ...)` использует глобальную переменную `collection`, а не аргумент функции).
+Пример: `generate_final_prompt("Tell me the economic situation of the US in 2024.", top_k=5, retrieve_function=semantic_search_retrieve, use_rerank=False, rerank_property='title')` — переменная `collection` внутри функции берётся из внешней области видимости, а не из параметров (это видно из тела функции, где `retrieve_function(..., collection=collection, ...)` использует глобальную переменную `collection`, а не аргумент функции). `print(prompt)` — visible output: собранный промпт с инструкцией использовать «2024 News» как часть общих знаний модели плюс оговоркой про порядок по релевантности, вопросом (`Query: Tell me the economic situation of the US in 2024.`) и блоком `2024 News:` с отформатированными чанками (например, про рост ВВП США на 2.5% за 2023 год и заголовок *«Why US economy is powering ahead of Europe's»*).
 
 #### 4.2 `llm_call(query, retrieve_function=None, top_k=5, use_rag=True, use_rerank=False, rerank_property=None, rerank_query=None)`
 
@@ -240,6 +222,8 @@ Markdown поясняет: reranker-модель принимает запрос
 query = "Tell me about United States and Brazil's relationship over the course of 2024. Provide links for the resources you use in the answer."
 print(llm_call(query=query, top_k=5, retrieve_function=hybrid_retrieve))
 ```
+
+Visible output — развёрнутый ответ про отношения США и Бразилии в 2024 году по нескольким пунктам: сильные торговые связи (свыше $70 млрд), растущее влияние Бразилии в BRICS, разногласия по позиции Бразилии в отношении Украины, сотрудничество по энергетике и безопасности (включая US-Brazil Energy Cooperation Agreement).
 
 ### 5. Эксперименты с RAG-системой
 
@@ -291,4 +275,6 @@ with suppress_subprocess_output():
 
 ### Ограничения и предпосылки
 
-Для полного выполнения notebook требуются: локальный файл `data/bbc_data.joblib` (75 256 статей BBC News с полями `title`, `pubDate`, `guid`, `link`, `description`, `article_content`, `chunk`, `chunk_index`); заранее подготовленная и провекторизованная коллекция `bbc_collection` в персистентном хранилище Weaviate по пути, заданному переменной окружения `COLLECTIONS_PATH`; свободные локальные порты для embedded Weaviate (`8079`/`50050` со стороны клиента) и для Flask-инференс-сервера (`5000`); установленные зависимости `weaviate-client`, `joblib`, `flask`, `httpx`, `openai`, `FlagEmbedding`, `torch`, `together`, `ipywidgets`, а для тестов — `dlai_grader`. Для вызовов LLM нужен доступ к Together.ai или прокси-серверу Coursera. В README.md отдельно указано, что Weaviate-сервер должен быть запущен для работы задания и что датасет уже прочанкован и провекторизован. В рамках конспекта код изучался статически, без запуска notebook, Flask/Weaviate-серверов или отдельных ячеек и без попытки самостоятельно исправить или решить graded-упражнения.
+Для полного выполнения notebook требуются: локальный файл `data/bbc_data.joblib` (75 256 статей BBC News с полями `title`, `pubDate`, `guid`, `link`, `description`, `article_content`, `chunk`, `chunk_index`); заранее подготовленная и провекторизованная коллекция `bbc_collection` в персистентном хранилище Weaviate по пути, заданному переменной окружения `COLLECTIONS_PATH`; свободные локальные порты для embedded Weaviate (`8079`/`50050` со стороны клиента) и для Flask-инференс-сервера (`5000`); установленные зависимости `weaviate-client`, `joblib`, `flask`, `httpx`, `openai`, `FlagEmbedding`, `torch`, `together`, `ipywidgets`, а для тестов — `dlai_grader`. Для вызовов LLM нужен доступ к Together.ai или прокси-серверу Coursera. В README.md отдельно указано, что Weaviate-сервер должен быть запущен для работы задания и что датасет уже прочанкован и провекторизован.
+
+В текущей версии notebook все пять graded-упражнений реализованы, юнит-тесты по каждому из них проходят (`All tests passed!`), а численные результаты в visible output совпадают с указанными в markdown значениями «Expected output»/«Expected Results». В рамках конспекта код изучался статически, без запуска notebook, Flask/Weaviate-серверов или отдельных ячеек.

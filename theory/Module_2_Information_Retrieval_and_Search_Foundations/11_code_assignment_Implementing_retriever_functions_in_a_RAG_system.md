@@ -6,7 +6,7 @@
 
 `C1M2_Assignment.ipynb` («Assignment 2: Implementing Retriever Functions in a RAG System») — второе графируемое задание курса. В нём слушатель дополняет RAG-систему, реализуя различные функции retrieval.
 
-> Важно: изучен именно шаблон задания (`C1M2_Assignment.ipynb`), а не файл с готовым решением — в этой папке `Graded_Assignments` файла `..._Solution.ipynb` нет (в отличие от Module 1). Три `GRADED CELL`-ячейки (`bm25_retrieve`, `semantic_search_retrieve`, `reciprocal_rank_fusion`) в этом notebook оставлены как заготовки с плейсхолдерами `None` вместо реального кода, поэтому у соответствующих вызывающих ячеек нет фактического visible output — вместо него в markdown приведены ожидаемые (Expected output) значения, которые код должен вернуть после того, как слушатель допишет решение.
+> `C1M2_Assignment.ipynb` в этой папке `Graded_Assignments` — единственный файл задания (файла `..._Solution.ipynb` нет, как и в Module 1 после его обновления). Все три `GRADED CELL`-ячейки (`bm25_retrieve`, `semantic_search_retrieve`, `reciprocal_rank_fusion`) в текущей версии notebook реализованы полностью — плейсхолдеров `None` не осталось, у всех вызывающих ячеек и юнит-тестов есть фактический visible output, совпадающий с указанным в markdown «Expected output».
 
 Согласно вводной ячейке, в задании нужно:
 
@@ -100,29 +100,28 @@ TOKENIZED_DATA = bm25s.tokenize(corpus)
 BM25_RETRIEVER.index(TOKENIZED_DATA)
 ```
 
-**Exercise 1 — `bm25_retrieve(query, top_k=5)`** (GRADED CELL, оставлена как шаблон):
+**Exercise 1 — `bm25_retrieve(query, top_k=5)`** (GRADED CELL, решена):
 
 ```python
 def bm25_retrieve(query: str, top_k: int = 5):
     ### START CODE HERE ###
-    tokenized_query = None
-    BM25_RETRIEVER.index(None)
-    results, scores = None
-    results = None
-    top_k_indices = None
+    tokenized_query = bm25s.tokenize(query)
+    results, scores = BM25_RETRIEVER.retrieve(tokenized_query, k=top_k)
+    results = results[0]
+    top_k_indices = [corpus.index(result) for result in results]
     ### END CODE HERE ###
     return top_k_indices
 ```
 
-По докстрингу и структуре ячейки, ожидаемое решение должно: токенизировать `query` через `bm25s.tokenize`, вызвать `.retrieve(...)` у `BM25_RETRIEVER` с параметром `k=top_k`, взять первый элемент `results` (список найденных документов для единственного запроса) и преобразовать найденные тексты обратно в индексы в `corpus`.
+Решение: `query` токенизируется через `bm25s.tokenize`, `BM25_RETRIEVER.retrieve(...)` вызывается с параметром `k=top_k`, берётся первый элемент `results` (список найденных документов для единственного запроса), тексты преобразуются обратно в индексы через `corpus.index(...)`.
 
-Ожидаемый (Expected output) результат для `bm25_retrieve("What are the recent news about GDP?")`:
+Visible output для `bm25_retrieve("What are the recent news about GDP?")` (совпадает с Expected output в markdown):
 
 ```
 [752, 673, 289, 626, 43]
 ```
 
-Тест: `unittests.test_bm25_retrieve(bm25_retrieve)`.
+Тест: `unittests.test_bm25_retrieve(bm25_retrieve)` — visible output: `All tests passed!`.
 
 #### 3.3–3.4 Semantic Search и Embeddings
 
@@ -165,29 +164,29 @@ top_2_indices = similarity_indices[:2]
 
 В комментариях кода поясняется: `-similarity_scores` используется, чтобы отсортировать по убыванию (поскольку `argsort` по умолчанию сортирует по возрастанию).
 
-**Exercise 2 — `semantic_search_retrieve(query, top_k=5)`** (GRADED CELL, шаблон):
+**Exercise 2 — `semantic_search_retrieve(query, top_k=5)`** (GRADED CELL, решена):
 
 ```python
 def semantic_search_retrieve(query, top_k=5):
     ### START CODE HERE ###
-    query_embedding = None
-    similarity_scores = None
-    similarity_indices = None
-    top_k_indices_array = None
+    query_embedding = model.encode(query)
+    similarity_scores = cosine_similarity(query_embedding, EMBEDDINGS)
+    similarity_indices = np.argsort(-similarity_scores)
+    top_k_indices_array = similarity_indices[:top_k]
     ### END CODE HERE ###
     top_k_indices = [int(x) for x in top_k_indices_array]
     return top_k_indices
 ```
 
-По докстрингу и hint-ам ожидаемое решение: закодировать `query` через `model.encode(query)`, посчитать `cosine_similarity(query_embedding, EMBEDDINGS)`, отсортировать индексы по убыванию через `np.argsort(-similarity_scores)`, взять первые `top_k`.
+Решение: `query` кодируется через `model.encode(query)`, считается `cosine_similarity(query_embedding, EMBEDDINGS)`, индексы сортируются по убыванию через `np.argsort(-similarity_scores)`, берутся первые `top_k`.
 
-Ожидаемый (Expected output) результат для `semantic_search_retrieve("What are the recent news about GDP?")`:
+Visible output для `semantic_search_retrieve("What are the recent news about GDP?")` (совпадает с Expected output):
 
 ```
 [743, 673, 626, 752, 326]
 ```
 
-Тест: `unittests.test_semantic_search_retrieve(semantic_search_retrieve, EMBEDDINGS)`.
+Тест: `unittests.test_semantic_search_retrieve(semantic_search_retrieve, EMBEDDINGS)` — visible output: `All tests passed!`.
 
 #### 3.5 RRF Retrieve
 
@@ -197,24 +196,24 @@ $$\text{Score}(d) = \sum_{r=1}^{n} \frac{1}{k + \text{rank}_r(d)}$$
 
 где `n` — число ранжирующих систем, `rank_r(d)` — ранг документа `d` в `r`-м списке результатов, `k` — константа, масштабирующая вклад каждого ранга.
 
-**Exercise 3 — `reciprocal_rank_fusion(list1, list2, top_k=5, K=60)`** (GRADED CELL, шаблон):
+**Exercise 3 — `reciprocal_rank_fusion(list1, list2, top_k=5, K=60)`** (GRADED CELL, решена):
 
 ```python
 def reciprocal_rank_fusion(list1, list2, top_k=5, K=60):
     ### START CODE HERE ###
-    rrf_scores = None
+    rrf_scores = {}
     for lst in [list1, list2]:
         for rank, item in enumerate(lst, start=1):
             if item not in rrf_scores:
-                rrf_scores[item] = None
-            rrf_scores[item] += None
-    sorted_items = sorted(None, key=rrf_scores.get, reverse=True)
-    top_k_indices = [int(x) for x in None]
+                rrf_scores[item] = 0
+            rrf_scores[item] += 1/(rank + K)
+    sorted_items = sorted(rrf_scores, key=rrf_scores.get, reverse=True)
+    top_k_indices = [int(x) for x in sorted_items[:top_k]]
     ### END CODE HERE ###
     return top_k_indices
 ```
 
-По докстрингу, hint-ам и комментариям в теле функции ожидаемое решение: инициализировать `rrf_scores = {}`, для каждого из двух списков перечислить элементы с рангом, начинающимся с 1 (`enumerate(lst, start=1)` — по конвенции ранжирования, где первый элемент имеет ранг 1, а не 0), инициализировать счёт нового документа значением `0`, прибавлять к нему `1 / (rank + K)`, затем отсортировать индексы по убыванию скора (`sorted(rrf_scores, key=rrf_scores.get, reverse=True)`) и взять первые `top_k`.
+Решение: `rrf_scores = {}` инициализируется пустым словарём; для каждого из двух списков перечисляются элементы с рангом, начинающимся с 1 (`enumerate(lst, start=1)` — по конвенции ранжирования, где первый элемент имеет ранг 1, а не 0); счёт нового документа инициализируется значением `0`, к нему прибавляется `1 / (rank + K)`; индексы сортируются по убыванию скора (`sorted(rrf_scores, key=rrf_scores.get, reverse=True)`), берутся первые `top_k`.
 
 Демонстрационный вызов:
 
@@ -224,15 +223,15 @@ list2 = bm25_retrieve('What are the recent news about GDP?')
 rrf_list = reciprocal_rank_fusion(list1, list2)
 ```
 
-Ожидаемый (Expected output, порядок может отличаться):
+Visible output (совпадает с Expected output в markdown, где отдельно оговорено, что порядок может отличаться):
 
 ```
-Semantic Search List: [743 673 626 752 326]
+Semantic Search List: [743, 673, 626, 752, 326]
 BM25 List: [752, 673, 289, 626, 43]
 RRF List: [673, 752, 626, 743, 289]
 ```
 
-Тест: `unittests.test_reciprocal_rank_fusion(reciprocal_rank_fusion)`.
+Тест: `unittests.test_reciprocal_rank_fusion(reciprocal_rank_fusion)` — visible output: `All tests passed!`.
 
 ### Раздел 4: завершение RAG-системы
 
@@ -251,12 +250,14 @@ RRF List: [673, 752, 626, 743, 289]
 
 **`llm_call(query, retrieve_function=None, top_k=5, use_rag=True)`** — вызывает `generate_final_prompt`, передаёт результат в `generate_with_single_input`, возвращает `generated_response['content']`.
 
-Демонстрационный вызов (без явного результата в тексте notebook, так как зависит от нерешённых функций выше):
+Демонстрационный вызов:
 
 ```python
 query = "Recent news in technology. Provide sources."
 print(llm_call(query, retrieve_function=semantic_search_retrieve))
 ```
+
+Visible output — развёрнутый ответ про новости технологий (влияние AI на индустрию чипов, расходы рекламных компаний на технологии, рыночные новости в tech/media/telecom и energy/utilities) с блоком `Sources:`, где перечислены конкретные источники и даты публикаций (например, *«El Pais: Artificial intelligence sparks 'Game of Thrones' in the chip industry (April 12, 2024)»*).
 
 #### 4.2 Эксперименты с RAG-системой
 
@@ -302,4 +303,4 @@ Notebook завершается поздравлением с выполнени
 
 Для полного выполнения notebook требуются: локальный файл `news_data_dedup.csv`; локальный файл `embeddings.joblib` с предвычисленными embeddings корпуса; переменная окружения `MODEL_PATH` (путь к локально сохранённой/кэшированной модели `BAAI/bge-base-en-v1.5`); доступ к Together.ai или proxy-серверу Coursera (`TOGETHER_API_KEY` или прямой доступ к `https://proxy.dlai.link/coursera_proxy/together`); установленные зависимости `bm25s`, `sentence_transformers`, `joblib`, `numpy`, `pandas`, `python-dateutil`, `together`, `requests`, `ipywidgets`, а для тестов — `dlai_grader`.
 
-Поскольку изучен именно шаблон задания без выполненного решения, реальные числовые результаты для `bm25_retrieve`, `semantic_search_retrieve`, `reciprocal_rank_fusion` и итоговых ответов `llm_call`/`display_widget` в notebook не зафиксированы как visible output — они присутствуют только как «Expected output» в markdown-ячейках. В рамках конспекта код изучался статически, без запуска notebook, скриптов или отдельных ячеек и без попытки самостоятельно решить graded-упражнения.
+В текущей версии notebook все три graded-упражнения (`bm25_retrieve`, `semantic_search_retrieve`, `reciprocal_rank_fusion`) реализованы, юнит-тесты по каждому из них проходят (`All tests passed!`), а численные результаты в visible output совпадают с указанными в markdown значениями «Expected output». В рамках конспекта код изучался статически, без запуска notebook, скриптов или отдельных ячеек.
