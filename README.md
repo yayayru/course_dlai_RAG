@@ -6,7 +6,7 @@
 
 - 5 pdf-файлов слайдов взяты из обсуждения на форуме: https://community.deeplearning.ai/t/rag-lecture-notes/852809
 - Форум курса: https://community.deeplearning.ai/t/rag-lecture-notes/852809
-- Референсные задания и решения: https://github.com/singh-krishan/coursera_rag
+- Референсные задания и решения: https://github.com/singh-krishan/coursera_rag и https://github.com/muhammad-faizan-122/rag-course
 
 ## Структура репозитория
 
