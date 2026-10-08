@@ -109,8 +109,7 @@ def generate_with_single_input(prompt: str,
             raise Exception(f"Failed to get correct output from LLM call.\nException: {e}\nResponse: {response.text}")
     else:
         client = Together(api_key = _without_bearer_prefix(together_api_key))
-        json_dict = client.chat.completions.create(**payload).model_dump()
-        json_dict['choices'][-1]['message']['role'] = json_dict['choices'][-1]['message']['role'].name.lower()
+        json_dict = client.chat.completions.create(**payload).model_dump(mode="json")
     try:
         output_dict = {'role': json_dict['choices'][-1]['message']['role'], 'content': json_dict['choices'][-1]['message']['content']}
     except Exception as e:
@@ -161,8 +160,7 @@ def generate_with_multiple_input(messages: List[Dict],
             raise Exception(f"Failed to get correct output from LLM call.\nException: {e}\nResponse: {response.text}")
     else:
         client = Together(api_key = _without_bearer_prefix(together_api_key))
-        json_dict = client.chat.completions.create(**payload).model_dump()
-        json_dict['choices'][-1]['message']['role'] = json_dict['choices'][-1]['message']['role'].name.lower()
+        json_dict = client.chat.completions.create(**payload).model_dump(mode="json")
     try:
         output_dict = {'role': json_dict['choices'][-1]['message']['role'], 'content': json_dict['choices'][-1]['message']['content']}
     except Exception as e:
