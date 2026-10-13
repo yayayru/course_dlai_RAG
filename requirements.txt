@@ -1,3 +1,7 @@
 requests
 together
 python-dotenv
+numpy
+pandas
+sentence-transformers
+ipywidgets

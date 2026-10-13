@@ -8,11 +8,16 @@ import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import requests
 import os 
+from pathlib import Path
+from dotenv import dotenv_values
 from together import Together
 
-model_name = os.path.join(os.environ['MODEL_PATH'], "BAAI/bge-base-en-v1.5")
+_ENV_PATH = Path(__file__).resolve().with_name(".env")
 
-model = SentenceTransformer("BAAI/bge-base-en-v1.5", cache_folder = os.environ['MODEL_PATH'])
+# model_name = os.path.join(os.environ['MODEL_PATH'], "BAAI/bge-base-en-v1.5")
+
+# model = SentenceTransformer("BAAI/bge-base-en-v1.5", cache_folder = os.environ['MODEL_PATH'])
+model = SentenceTransformer("BAAI/bge-base-en-v1.5", cache_folder = "./models")
 
 EMBEDDINGS = joblib.load("embeddings.joblib")
 
@@ -31,13 +36,24 @@ def get_proxy_headers():
     Get the appropriate headers for API calls based on the platform.
     Returns Authorization header with Together API key if available.
     """
-    return {"Authorization": os.environ.get("TOGETHER_API_KEY", "")}
+    api_key = get_together_key()
+    return {"Authorization": f"Bearer {api_key}"} if api_key else {}
+
+def _normalize_together_key(api_key):
+    api_key = (api_key or "").strip()
+    if api_key.lower().startswith("bearer "):
+        api_key = api_key[7:].strip()
+    return api_key
 
 def get_together_key():
     """
-    Get the Together API key from environment variables.
+    Read the adjacent .env on each call, falling back to the process environment.
+    The local file takes priority over a stale key in a running notebook kernel.
     """
-    return os.environ.get("TOGETHER_API_KEY", "")
+    values = dotenv_values(_ENV_PATH, encoding="utf-8-sig")
+    return _normalize_together_key(
+        values.get("TOGETHER_API_KEY", os.environ.get("TOGETHER_API_KEY", ""))
+    )
 
 def pprint(*args, **kwargs):
     print(json.dumps(*args, indent = 2))
@@ -96,8 +112,17 @@ def generate_with_single_input(prompt: str,
     if payload_top_p is not None:
         payload["top_p"] = payload_top_p
 
-    if (not together_api_key) and ('TOGETHER_API_KEY' not in os.environ):
-        url = os.path.join(get_proxy_url(), 'v1/chat/completions')
+    if together_api_key is None:
+        together_api_key = get_together_key()
+    else:
+        together_api_key = _normalize_together_key(together_api_key)
+
+    if not together_api_key:
+        if 'IN_COURSERA_ENVIRON' not in os.environ:
+            raise ValueError(
+                f"Set TOGETHER_API_KEY in {_ENV_PATH} or pass together_api_key explicitly."
+            )
+        url = get_proxy_url().rstrip('/') + '/v1/chat/completions'
         response = requests.post(url, json = payload, verify=False)
         if not response.ok:
             raise Exception(f"Error while calling LLM: {response.text}")
@@ -106,11 +131,8 @@ def generate_with_single_input(prompt: str,
         except Exception as e:
             raise Exception(f"Failed to get correct output from LLM call.\nException: {e}\nResponse: {response.text}")
     else:
-        if together_api_key is None:
-            together_api_key = os.environ['TOGETHER_API_KEY']
         client = Together(api_key =  together_api_key)
-        json_dict = client.chat.completions.create(**payload).model_dump()
-        json_dict['choices'][-1]['message']['role'] = json_dict['choices'][-1]['message']['role'].name.lower()
+        json_dict = client.chat.completions.create(**payload).model_dump(mode="json")
     try:
         output_dict = {'role': json_dict['choices'][-1]['message']['role'], 'content': json_dict['choices'][-1]['message']['content']}
     except Exception as e:
