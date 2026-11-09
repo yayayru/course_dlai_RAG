@@ -4,8 +4,36 @@ from dateutil import parser
 import pandas as pd
 from pprint import pprint as original_pprint
 import os
+from pathlib import Path
+from dotenv import dotenv_values
 from together import Together
 import numpy as np
+
+
+def _find_env_path():
+    """Ближайший .env: рядом с utils.py или выше по дереву (корень репозитория)."""
+    for folder in Path(__file__).resolve().parents:
+        candidate = folder / ".env"
+        if candidate.is_file():
+            return candidate
+    return None
+
+def _normalize_together_key(api_key):
+    api_key = (api_key or "").strip()
+    if api_key.lower().startswith("bearer "):
+        api_key = api_key[7:].strip()
+    return api_key
+
+def get_together_key():
+    """
+    Read the nearest .env on each call, falling back to the process environment.
+    The file takes priority over a stale key in a running notebook kernel.
+    """
+    env_path = _find_env_path()
+    values = dotenv_values(env_path, encoding="utf-8-sig") if env_path else {}
+    return _normalize_together_key(
+        values.get("TOGETHER_API_KEY", os.environ.get("TOGETHER_API_KEY", ""))
+    )
 
 
 # Distance formulas. 
@@ -88,43 +116,50 @@ def pprint(*args, **kwargs):
     kwargs.setdefault('sort_dicts', False)
     original_pprint(*args, **kwargs)
     
-def generate_with_single_input(prompt: str, 
-                               role: str = 'assistant', 
-                               top_p: float = 0, 
+def generate_with_single_input(prompt: str,
+                               role: str = 'user',
+                               top_p: float = None,
                                temperature: float = 0,
                                max_tokens: int = 500,
-                               model: str ="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                               model: str ="Qwen/Qwen3.5-9B",
                                together_api_key = None,
                               **kwargs):
-    
-    if top_p is None:
-        top_p = 'none'
-    if temperature is None:
-        temperature = 'none'
 
     payload = {
             "model": model,
             "messages": [{'role': role, 'content': prompt}],
-            "top_p": top_p,
-            "temperature": temperature,
             "max_tokens": max_tokens,
+            "reasoning": {"enabled": False},
             **kwargs
                   }
-    if (not together_api_key) and ('TOGETHER_API_KEY' not in os.environ):
-        url = os.path.join('https://proxy.dlai.link/coursera_proxy/together', 'v1/chat/completions')   
+    # Together API не принимает строку 'none' — просто не передаём такие параметры
+    if temperature is not None:
+        payload["temperature"] = temperature
+    if top_p is not None:
+        payload["top_p"] = top_p
+
+    if together_api_key is None:
+        together_api_key = get_together_key()
+    else:
+        together_api_key = _normalize_together_key(together_api_key)
+
+    if not together_api_key:
+        if 'IN_COURSERA_ENVIRON' not in os.environ:
+            raise ValueError(
+                "Set TOGETHER_API_KEY in .env (next to utils.py or in the repo root) "
+                "or pass together_api_key explicitly."
+            )
+        url = 'https://proxy.dlai.link/coursera_proxy/together/v1/chat/completions'
         response = requests.post(url, json = payload, verify=False)
         if not response.ok:
-            raise Exception(f"Error while calling LLM: f{response.text}")
+            raise Exception(f"Error while calling LLM: {response.text}")
         try:
             json_dict = json.loads(response.text)
         except Exception as e:
             raise Exception(f"Failed to get correct output from LLM call.\nException: {e}\nResponse: {response.text}")
     else:
-        if together_api_key is None:
-            together_api_key = os.environ['TOGETHER_API_KEY']
         client = Together(api_key =  together_api_key)
-        json_dict = client.chat.completions.create(**payload).model_dump()
-        json_dict['choices'][-1]['message']['role'] = json_dict['choices'][-1]['message']['role'].name.lower()
+        json_dict = client.chat.completions.create(**payload).model_dump(mode="json")
     try:
         output_dict = {'role': json_dict['choices'][-1]['message']['role'], 'content': json_dict['choices'][-1]['message']['content']}
     except Exception as e:

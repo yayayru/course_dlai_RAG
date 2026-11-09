@@ -5,3 +5,8 @@ numpy
 pandas
 sentence-transformers
 ipywidgets
+
+# Module 2
+matplotlib
+adjustText
+bm25s

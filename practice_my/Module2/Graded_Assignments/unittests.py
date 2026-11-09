@@ -1,4 +1,29 @@
-from dlai_grader.grading import test_case, print_feedback
+try:
+    # На платформе DLAI/Coursera используется их пакет-грейдер.
+    from dlai_grader.grading import test_case, print_feedback
+except ModuleNotFoundError:
+    # Локально пакета dlai_grader нет — минимальная замена с тем же интерфейсом.
+    from dataclasses import dataclass
+    from typing import Any
+
+    @dataclass
+    class test_case:
+        msg: str = ""
+        want: Any = None
+        got: Any = None
+        failed: bool = False
+
+    def print_feedback(test_cases):
+        failed_cases = [t for t in test_cases if t.failed]
+        if not failed_cases:
+            print("\033[92m All tests passed!\033[0m")
+            return
+        for t in failed_cases:
+            print(
+                f"\033[91mFailed test case: {t.msg}.\n"
+                f"Expected: {t.want}\nGot: {t.got}\033[0m\n"
+            )
+
 from types import FunctionType
 import utils
 
